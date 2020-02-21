@@ -46,6 +46,7 @@ Happy defaults to reduce necessary configuration. Including entityt names, just 
 #### MODIFIERS
 * `.safe` hint to prefix calls, that will cause exceptions to be thrown that would otherwise be swallowed like a document not existing. `const user:User = await S3DB.safe.get( 'docID', User )`
 * `.retries(4)` attempt the operation the specified number of times until success, and throw the last encountered failure if not. Will analyze the response of the errors returned from S3 and only retry when a retry is permitted.
+* `timeout( ms )` how long to give the operation before timing out.
 
 #### DECORATORS
 * `@s3key( idGenerator? )` annotate a classes id attribute as the object key. Current s3 implementation is bugged with this.
