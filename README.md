@@ -12,29 +12,47 @@ Happy defaults to reduce necessary configuration. Including entityt names, just 
 
 ## Defaults
 
-* REGION = AWS_REGION | REGION | 'us-est-1';
-* BUCKET_NAME_PATTERN = 
+* ROOT_NAME = 'mu-ts-s3' // Used for logging, and bucket naming and adding context where multiple instances may be present.
+* REGION = AWS_REGION | REGION | 'us-est-1'
+* BUCKET_PREFIX = () => `${await configurations.get('STAGE').${await configurations.get('REGION')}.${await configurations.get('ROOT_NAME')}-{{RESOURCE_NAME}}`;
 * RETRIES = 3
 * PAGE_SIZE = 100
+* SERIALIZER = () => JSON.stringify
+* DESERIALIZER = () => JSON.parse
+* UUID = 'v4'
+* AWSKMS = AES256 // If not AES256 the KMS key to use to use when interacting with S3.
 
 ### APIS
 
+#### CONFIGURATION/DEFAULTS
 * `S3.configure({ ... })` to configure the S3 singleton defaults, like page size, bucket name or region.
 * `S3.conifgurations( @mu-ts/configurations )` to look for configuration values
-* `list<T>( prefix? )` to return a list of objects in the type defined.
+
+#### RAW ACTIONS
+* `list( prefix?, type )` to return a list of objects in the type defined.
 * `put( document, overwrite=true )` put a document, optionally dont allow overwritting of an existing document. If overwrite is false use `.exists` and if id on doc already exists throw error.
-* `modify( id, {changesToApply} )` make sure object exists, load it, apply changes, check eTag/MD5 when saving, if collission, re-try. Continue until re-tries exceeded.
 * `get(id, type)` to load a document and have it transformed into the target type.
+* `delete( id )` delets a document if it exists.
+* `head( id)` returns the head object for the document.
+* `select( id, sql, type)` returns the data from the document, per the selectObjectContent behavior of S3.
+* `pipe( id )` Creates a pipe from a duplex stream that can be read or written to.
+
+#### SUGAR
+* `modify( id, {changesToApply} )` make sure object exists, load it, apply changes, check eTag/MD5 when saving, if collission, re-try. Continue until re-tries exceeded.
 * `move( document, destination )` moves a document (including origin delete) to the destination bucket.
 * `copy( document, destination )` copies a document into the destination bucket.
-* `delete( id )` delets a document if it
-* `head( id)` returns the head object for the document.
 * `exists( id, md5/etag? )` returns true if a head object is found. Wonder if providing etag or md5 as optional secondary attributes will be helpful in making sure the specific content is in place. Maybe supporting object versions as well.
-* `s3key( idGenerator? )` annotate a classes id attribute as the object key. Current s3 implementation is bugged with this.
-* `@s3bucket( { configuration })` annotate a class to configure it for a specific bucket.
-* `@s3prefix( prefix )` annotate a class to have all id operations be prefixed with this value.
+
+#### MODIFIERS
 * `.safe` hint to prefix calls, that will cause exceptions to be thrown that would otherwise be swallowed like a document not existing. `const user:User = await S3DB.safe.get( 'docID', User )`
 * `.retries(4)` attempt the operation the specified number of times until success, and throw the last encountered failure if not. Will analyze the response of the errors returned from S3 and only retry when a retry is permitted.
+
+#### DECORATORS
+* `@s3key( idGenerator? )` annotate a classes id attribute as the object key. Current s3 implementation is bugged with this.
+* `@s3bucket( { configuration })` annotate a class to configure it for a specific bucket.
+* `@s3prefix( prefix )` annotate a class to have all id operations be prefixed with this value.
+* `@s3encrypt()` The field will be encrypted using the default encryption configuration.
+* `@s3redact()` Do not save this data to S3.
 
 ## Exceptions
 
