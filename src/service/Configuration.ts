@@ -1,10 +1,13 @@
 import { ServerSideEncryption } from 'aws-sdk/clients/s3';
 import { Logger, LoggerService } from '@mu-ts/logger';
 import { Configurations } from '@mu-ts/configurations';
-import { v4 } from 'uuid';
-import { Serialize } from './Serialize';
+import { Serialize } from '../model/Serialize';
 import { Document } from './Document';
-import { Deserialize } from './Deserialize';
+import { Deserialize } from '../model/Deserialize';
+import { createHash } from 'crypto';
+import { Serializer } from 'aws-sdk/clients/firehose';
+import { IDGenerator } from '../model/IDGenerator';
+import { MD5Generator } from '../model/MD5Generator';
 
 export class Configuration {
   /**
@@ -48,9 +51,32 @@ export class Configuration {
   public readonly RETRIES: number = 3;
 
   /**
+   * Default timeout for interacting with S3. AWS S3 is defaulted to 120000 (2 mins)
+   * but we reduce it to 20 seconds as our use cases are drastically simpler and need
+   * to fail faster. This also fits within the 29 second timeout of API Gateway
+   * with a little room to spare.
+   */
+  public readonly TIMEOUT: number = 20000;
+
+  /**
+   * The amount of time to wait to connect to S3 successfully. This only limits the connection phase and has
+   * no impact once the socket has established a connection.
+   */
+  public readonly CONNECT_TIMEOUT: number = 5000;
+
+  /**
    * The default function for generating UUID's.
    */
-  public readonly UUID: Function = v4;
+  // @ts-ignore
+  public readonly ID_GENERATOR: IDGenerator = <T>(document: T, uuid: string) => uuid;
+
+  /**
+   * Default MD5 generation function.
+   */
+  public readonly MD5: MD5Generator = (body: string) =>
+    createHash('md5')
+      .update(body)
+      .digest('base64');
 
   /**
    * Default
@@ -63,6 +89,7 @@ export class Configuration {
   public readonly DESERIALIZER: Deserialize = (body: string) => JSON.parse(body);
 
   private static _i: Configuration;
+
   private readonly logger: Logger;
   private readonly configurations: { [T in keyof Configuration]?: Configuration[T] };
 
@@ -84,25 +111,8 @@ export class Configuration {
    *
    * @param name of the attribute to lookup in the coonfiguration.
    */
-  public static get(name: keyof Configuration): string | number | Function {
-    this.instance.logger.debug('get()', { name, instance: this.instance });
+  public static get(name: keyof Configuration): string | number | Deserialize | Serializer | IDGenerator | MD5Generator {
     return this.instance.configurations[name] || this.instance[name];
-  }
-
-  /**
-   * Returns an immutable reference to configurations. Can be used to retrieve the
-   * current configuration values (not defaults), and will update appropriately
-   * as the configurations are modified.
-   */
-  public static ref(): Configuration {
-    return new Proxy<Configuration>(this.instance, {
-      get: function(instance: Configuration, propName: keyof Configuration) {
-        return instance.configurations[propName];
-      },
-      set: function() {
-        throw new Error('Configurations returned via current() are immutable. Use .configure() instead.');
-      },
-    });
   }
 
   /**
