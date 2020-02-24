@@ -29,18 +29,18 @@ Happy defaults to reduce necessary configuration. Including entityt names, just 
 * `update( @mu-ts/configurations )` to look for configuration values
 
 #### RAW ACTIONS
-* `list( prefix?, type )` to return a list of objects in the type defined.
+* `list( prefix?, from, continuationToken )` to return a list of objects in the type defined.
 * `put( document, overwrite=true )` put a document, optionally dont allow overwritting of an existing document. If overwrite is false use `.exists` and if id on doc already exists throw error.
-* `get(id, type)` to load a document and have it transformed into the target type.
-* `remove( id )` delets a document if it exists.
-* `head( id)` returns the head object for the document.
-* `select( id, sql, type)` returns the data from the document, per the selectObjectContent behavior of S3.
+* `get(id, from)` to load a document and have it transformed into the target type.
+* `remove( id, from )` delets a document if it exists.
+* `head( id, from )` returns the head object for the document.
+* `copy( key, from, to )` copies a document into the destination bucket.
+* `select( id, sql, from, as?)` returns the data from the document, per the selectObjectContent behavior of S3.
 
 #### SUGAR
-* `modify( id, {changesToApply} )` make sure object exists, load it, apply changes, check eTag/MD5 when saving, if collission, re-try. Continue until re-tries exceeded.
-* `move( document, destination )` moves a document (including origin delete) to the destination bucket.
-* `copy( document, destination )` copies a document into the destination bucket.
-* `exists( id, md5/etag? )` returns true if a head object is found. Wonder if providing etag or md5 as optional secondary attributes will be helpful in making sure the specific content is in place. Maybe supporting object versions as well.
+* `modify( id, from, {changesToApply} )` make sure object exists, load it, apply changes, check eTag/MD5 when saving, if collission, re-try. Continue until re-tries exceeded.
+* `move( id, from, destination )` moves a document (including origin delete) to the destination bucket.
+* `exists( id, from, md5/etag? )` returns true if a head object is found. Wonder if providing etag or md5 as optional secondary attributes will be helpful in making sure the specific content is in place. Maybe supporting object versions as well.
 * `mark()` Marks an objects current state as the rollback point.
 * `rollback()` Rolls an object back to its most recent marker. Lazy transaction stuff.
 
