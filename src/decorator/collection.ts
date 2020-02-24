@@ -1,4 +1,4 @@
-import { Metadata } from '../service/Metadata';
+import { Collection } from '../service/Collection';
 import { Configuration } from '../service/Configuration';
 
 /**
@@ -16,7 +16,7 @@ export function collection(): any {
       (part: string) => (name = name.replace(part, part === 'type' ? target.name.toLowerCase() : (Configuration.get(part as keyof Configuration) as string)))
     );
 
-    Metadata.set(target, { 'bucket.name': name });
+    Collection.set(target, { 'bucket.name': name });
 
     return target;
   };

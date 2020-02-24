@@ -1,5 +1,5 @@
 import { IDGenerator } from '../model/IDGenerator';
-import { Metadata } from '../service/Metadata';
+import { Collection } from '../service/Collection';
 
 /**
  * Tells the collection what attribute is to be used as the id for the documents.
@@ -10,8 +10,8 @@ import { Metadata } from '../service/Metadata';
  */
 export function id(generator?: IDGenerator): any {
   return (target: any, propertyKey: string, descriptor: PropertyDescriptor): PropertyDescriptor => {
-    Metadata.set(target, { 'id.name': propertyKey });
-    if (generator) Metadata.set(target, { 'id.generator': generator });
+    Collection.set(target, { 'id.name': propertyKey });
+    if (generator) Collection.set(target, { 'id.generator': generator });
     return descriptor;
   };
 }

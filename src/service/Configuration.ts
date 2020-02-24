@@ -1,13 +1,13 @@
 import { ServerSideEncryption } from 'aws-sdk/clients/s3';
 import { Logger, LoggerService } from '@mu-ts/logger';
 import { Configurations } from '@mu-ts/configurations';
-import { Serialize } from '../model/Serialize';
+import { Serializer } from '../model/Serialize';
 import { Document } from './Document';
-import { Deserialize } from '../model/Deserialize';
+import { Deserializer } from '../model/Deserialize';
 import { createHash } from 'crypto';
-import { Serializer } from 'aws-sdk/clients/firehose';
 import { IDGenerator } from '../model/IDGenerator';
 import { MD5Generator } from '../model/MD5Generator';
+import { Collection } from './Collection';
 
 export class Configuration {
   /**
@@ -81,12 +81,24 @@ export class Configuration {
   /**
    * Default
    */
-  public readonly SERIALIZER: Serialize = (document: Document) => JSON.stringify(document, /* redact */ undefined);
+  // @ts-ignore
+  public readonly SERIALIZER: Serializer = <T>(object: T, collection: Collection, document: Document) =>
+    JSON.stringify(
+      object,
+      (name: string, value: any) => {
+        /* Filter out redacted fields. */
+        if (collection.tag && collection.tag.includes(name)) return undefined;
+        if (collection.ignore && collection.ignore.includes(name)) return undefined;
+        return value;
+      },
+      undefined
+    );
 
   /**
    * Default de-serializer.
    */
-  public readonly DESERIALIZER: Deserialize = (body: string) => JSON.parse(body);
+  // @ts-ignore
+  public readonly DESERIALIZER: Deserializer = <T>(body: string, collection: Collection) => JSON.parse(body) as T;
 
   private static _i: Configuration;
 
@@ -111,7 +123,7 @@ export class Configuration {
    *
    * @param name of the attribute to lookup in the coonfiguration.
    */
-  public static get(name: keyof Configuration): string | number | Deserialize | Serializer | IDGenerator | MD5Generator {
+  public static get(name: keyof Configuration): string | number | Deserializer | Serializer | IDGenerator | MD5Generator {
     return this.instance.configurations[name] || this.instance[name];
   }
 
