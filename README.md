@@ -32,10 +32,9 @@ Happy defaults to reduce necessary configuration. Including entityt names, just 
 * `list( prefix?, type )` to return a list of objects in the type defined.
 * `put( document, overwrite=true )` put a document, optionally dont allow overwritting of an existing document. If overwrite is false use `.exists` and if id on doc already exists throw error.
 * `get(id, type)` to load a document and have it transformed into the target type.
-* `delete( id )` delets a document if it exists.
+* `remove( id )` delets a document if it exists.
 * `head( id)` returns the head object for the document.
 * `select( id, sql, type)` returns the data from the document, per the selectObjectContent behavior of S3.
-* `pipe` and then `put` or `get` to create a read or write pipe.
 
 #### SUGAR
 * `modify( id, {changesToApply} )` make sure object exists, load it, apply changes, check eTag/MD5 when saving, if collission, re-try. Continue until re-tries exceeded.
@@ -48,8 +47,9 @@ Happy defaults to reduce necessary configuration. Including entityt names, just 
 #### MODIFIERS
 * `.safe` hint to prefix calls, that will cause exceptions to be thrown that would otherwise be swallowed like a document not existing. `const user:User = await S3DB.safe.get( 'docID', User )`
 * `.retries(4)` attempt the operation the specified number of times until success, and throw the last encountered failure if not. Will analyze the response of the errors returned from S3 and only retry when a retry is permitted.
-* `timeout( ms )` how long to give the operation before timing out.
-* `transaction` to chain select commands together to succeed or fail together.
+* `.timeout( ms )` how long to give the operation before timing out.
+* `.transaction` to executed the chained commands together as a single operation, and rollback on failure of any item.
+* `.pipe` or `.stream` to create read/write or duplex streams for piping operations.
 
 #### DECORATORS
 * `@s3key( idGenerator? )` annotate a classes id attribute as the object key. Current s3 implementation is bugged with this.
