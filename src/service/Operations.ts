@@ -9,8 +9,8 @@ export interface Operations {
   get<T>(key: string, type: T | string): Promise<T | undefined>;
 
   /**
-   * Returns a list of document ids and metadata that match the prfix, or
-   * that are 
+   * Lists the documents in the collection attached to the type. The prefix
+   * 
    *
    * @param type to return an object for.
    */
