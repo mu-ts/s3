@@ -25,8 +25,8 @@ Happy defaults to reduce necessary configuration. Including entityt names, just 
 ### APIS
 
 #### CONFIGURATION/DEFAULTS
-* `S3.configure({ ... })` to configure the S3 singleton defaults, like page size, bucket name or region.
-* `S3.conifgurations( @mu-ts/configurations )` to look for configuration values
+* `configure({ ... })` to configure the S3 singleton defaults, like page size, bucket name or region.
+* `update( @mu-ts/configurations )` to look for configuration values
 
 #### RAW ACTIONS
 * `list( prefix?, type )` to return a list of objects in the type defined.
