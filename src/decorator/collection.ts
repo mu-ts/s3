@@ -1,5 +1,5 @@
-import { Collection } from '../service/Collection';
 import { Configuration } from '../service/Configuration';
+import { CollectionRegistry } from '../service/CollectionRegistry';
 
 /**
  * @collection('name') will map a specific entity to a bucket (for the appropriate
@@ -16,7 +16,7 @@ export function collection(): any {
       (part: string) => (name = name.replace(part, part === 'type' ? target.name.toLowerCase() : (Configuration.get(part as keyof Configuration) as string)))
     );
 
-    Collection.set(target, { 'bucket.name': name });
+    CollectionRegistry.register(target, { 'bucket.name': name });
 
     return target;
   };

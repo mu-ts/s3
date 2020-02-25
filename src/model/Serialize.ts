@@ -1,5 +1,5 @@
-import { Document } from '../service/Document';
-import { Collection } from '../service/Collection';
+import { Document } from './Document';
+import { Collection } from './Collection';
 
 /**
  * Interface for custom implementations on serializing objects before they

@@ -1,7 +1,7 @@
 import { GetObjectOutput, GetObjectRequest } from 'aws-sdk/clients/s3';
 import S3 = require('aws-sdk/clients/s3');
 
-import { Collection } from '../Collection';
+import { Collection } from '../../model/Collection';
 import { Command } from '../../model/s3/Command';
 import { Response } from '../../model/s3/Response';
 

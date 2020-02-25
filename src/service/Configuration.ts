@@ -2,12 +2,12 @@ import { ServerSideEncryption } from 'aws-sdk/clients/s3';
 import { Logger, LoggerService } from '@mu-ts/logger';
 import { Configurations } from '@mu-ts/configurations';
 import { Serializer } from '../model/Serialize';
-import { Document } from './Document';
+import { Document } from '../model/Document';
 import { Deserializer } from '../model/Deserialize';
 import { createHash } from 'crypto';
 import { IDGenerator } from '../model/IDGenerator';
 import { MD5Generator } from '../model/MD5Generator';
-import { Collection } from './Collection';
+import { Collection } from '../model/Collection';
 
 export class Configuration {
   /**
@@ -131,9 +131,9 @@ export class Configuration {
    *
    * @param configurations to lookup settings values in.
    */
-  public static async configurations(configurations: Configurations): Promise<void> {
+  public static async update(configurations: Configurations): Promise<void> {
     this.instance.logger.debug('setting configurations for @mu-ts/S3.', 'configurations()', { configurations });
-    for (const key in this.configurations) {
+    for (const key in this.instance.configurations) {
       (this.instance.configurations as any)[key] = await configurations.get(key);
     }
   }

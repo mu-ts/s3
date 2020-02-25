@@ -1,4 +1,4 @@
-import { Collection } from '../service/Collection';
+import { Collection } from './Collection';
 
 /**
  * Interface for custom implementations on serializing objects before they

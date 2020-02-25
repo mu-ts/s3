@@ -1,5 +1,5 @@
 import { IDGenerator } from '../model/IDGenerator';
-import { Collection } from '../service/Collection';
+import { CollectionRegistry } from '../service/CollectionRegistry';
 
 /**
  * Tells the collection what attribute is to be used as the id for the documents.
@@ -10,8 +10,8 @@ import { Collection } from '../service/Collection';
  */
 export function id(generator?: IDGenerator): any {
   return (target: any, propertyKey: string, descriptor: PropertyDescriptor): PropertyDescriptor => {
-    Collection.set(target, { 'id.name': propertyKey });
-    if (generator) Collection.set(target, { 'id.generator': generator });
+    CollectionRegistry.register(target, { 'id.name': propertyKey });
+    if (generator) CollectionRegistry.register(target, { 'id.generator': generator });
     return descriptor;
   };
 }
