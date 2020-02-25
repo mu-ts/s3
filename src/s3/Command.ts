@@ -2,7 +2,7 @@ import S3 = require('aws-sdk/clients/s3');
 
 import { Logger, LoggerService } from '@mu-ts/logger';
 
-import { Collection } from '../Collection';
+import { Collection } from '../model/Collection';
 import { Response } from './Response';
 
 /**

@@ -2,16 +2,18 @@ import S3 = require('aws-sdk/clients/s3');
 
 import { Logger, LoggerService } from '@mu-ts/logger';
 
-import { Operations } from '../../model/Operations';
-import { Header } from '../../model/Header';
-import { Collection } from '../../model/Collection';
-import { CollectionRegistry } from '../CollectionRegistry';
-import { GetObject } from './GetObject';
-import { Response } from '../../model/s3/Response';
-import { Deserializer } from '../../model/Deserialize';
-import { Serializer } from '../../model/Serialize';
-import { NotFound } from '../../model/error/NotFound';
-import { DocumentDecorator } from '../DocumentDecorator';
+import { Operations } from '../model/Operations';
+import { Header } from '../model/Header';
+import { Collection } from '../model/Collection';
+import { CollectionRegistry } from '../service/CollectionRegistry';
+import { GetObject } from './commands/GetObject';
+import { Response } from './Response';
+import { Deserializer } from '../model/Deserialize';
+import { Serializer } from '../model/Serialize';
+import { NotFound } from '../model/error/NotFound';
+import { DocumentDecorator } from '../service/DocumentDecorator';
+import { AWSError } from 'aws-sdk';
+import { Misconfiguration } from '../model/error/Misconfiguration';
 
 export class S3Operations implements Operations {
   private readonly logger: Logger;
@@ -53,15 +55,11 @@ export class S3Operations implements Operations {
       if (!response.Body) return undefined;
 
       const object: any = this.deserializer(response.Body, collection);
-      /**
-       * decorate object with metadata from S3.
-       */
       this.documentDecorator.decorate(object, response.Metadata);
 
       return object;
     } catch (error) {
-      if ('NoSuchKey' === error.code) throw new NotFound(key, collection);
-      throw error;
+      return this.handleError(error, collection, key);
     }
   }
 
@@ -84,5 +82,33 @@ export class S3Operations implements Operations {
 
   public async select<T, F>(sql: string, key: string, from: F | string, as?: T): Promise<T | undefined> {
     return Promise.resolve(undefined);
+  }
+
+  /**
+   *
+   * @param error to process
+   * @param collection in use when error was encountered.
+   * @param key being interacted with.
+   */
+  public handleError(error: Error | AWSError, collection: Collection, key?: string): undefined {
+    if ((error as AWSError).code) {
+      const awsError: AWSError = error as AWSError;
+      switch (awsError.code) {
+        case 'NoSuchKey':
+          throw new NotFound(key, collection);
+
+        case 'NoSuchBucket':
+          throw new Misconfiguration(`${collection['bucket.name']} is not a valid bucket or is not visible/accssible.`);
+
+        case 'Forbidden':
+          throw new Misconfiguration(
+            `The user or role does not have permission to access the bucket (${collection['bucket.name']}) or key (${key}) within the bucket.`
+          );
+
+        default:
+          throw error;
+      }
+    }
+    throw error;
   }
 }
