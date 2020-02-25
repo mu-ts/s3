@@ -25,31 +25,31 @@ Happy defaults to reduce necessary configuration. Including entityt names, just 
 ### APIS
 
 #### CONFIGURATION/DEFAULTS
-* `S3.configure({ ... })` to configure the S3 singleton defaults, like page size, bucket name or region.
-* `S3.conifgurations( @mu-ts/configurations )` to look for configuration values
+* `configure({ ... })` to configure the S3 singleton defaults, like page size, bucket name or region.
+* `update( @mu-ts/configurations )` to look for configuration values
 
 #### RAW ACTIONS
-* `list( prefix?, type )` to return a list of objects in the type defined.
+* `list( prefix?, from, continuationToken )` to return a list of objects in the type defined.
 * `put( document, overwrite=true )` put a document, optionally dont allow overwritting of an existing document. If overwrite is false use `.exists` and if id on doc already exists throw error.
-* `get(id, type)` to load a document and have it transformed into the target type.
-* `delete( id )` delets a document if it exists.
-* `head( id)` returns the head object for the document.
-* `select( id, sql, type)` returns the data from the document, per the selectObjectContent behavior of S3.
-* `pipe` and then `put` or `get` to create a read or write pipe.
+* `get(id, from)` to load a document and have it transformed into the target type.
+* `remove( id, from )` delets a document if it exists.
+* `head( id, from )` returns the head object for the document.
+* `copy( key, from, to )` copies a document into the destination bucket.
+* `select( id, sql, from, as?)` returns the data from the document, per the selectObjectContent behavior of S3.
 
 #### SUGAR
-* `modify( id, {changesToApply} )` make sure object exists, load it, apply changes, check eTag/MD5 when saving, if collission, re-try. Continue until re-tries exceeded.
-* `move( document, destination )` moves a document (including origin delete) to the destination bucket.
-* `copy( document, destination )` copies a document into the destination bucket.
-* `exists( id, md5/etag? )` returns true if a head object is found. Wonder if providing etag or md5 as optional secondary attributes will be helpful in making sure the specific content is in place. Maybe supporting object versions as well.
+* `modify( id, from, {changesToApply} )` make sure object exists, load it, apply changes, check eTag/MD5 when saving, if collission, re-try. Continue until re-tries exceeded.
+* `move( id, from, destination )` moves a document (including origin delete) to the destination bucket.
+* `exists( id, from, md5/etag? )` returns true if a head object is found. Wonder if providing etag or md5 as optional secondary attributes will be helpful in making sure the specific content is in place. Maybe supporting object versions as well.
 * `mark()` Marks an objects current state as the rollback point.
 * `rollback()` Rolls an object back to its most recent marker. Lazy transaction stuff.
 
 #### MODIFIERS
 * `.safe` hint to prefix calls, that will cause exceptions to be thrown that would otherwise be swallowed like a document not existing. `const user:User = await S3DB.safe.get( 'docID', User )`
 * `.retries(4)` attempt the operation the specified number of times until success, and throw the last encountered failure if not. Will analyze the response of the errors returned from S3 and only retry when a retry is permitted.
-* `timeout( ms )` how long to give the operation before timing out.
-* `transaction` to chain select commands together to succeed or fail together.
+* `.timeout( ms )` how long to give the operation before timing out.
+* `.transaction` to executed the chained commands together as a single operation, and rollback on failure of any item.
+* `.pipe` or `.stream` to create read/write or duplex streams for piping operations.
 
 #### DECORATORS
 * `@s3key( idGenerator? )` annotate a classes id attribute as the object key. Current s3 implementation is bugged with this.
