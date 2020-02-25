@@ -14,6 +14,8 @@ import { NotFound } from '../model/error/NotFound';
 import { DocumentDecorator } from '../service/DocumentDecorator';
 import { AWSError } from 'aws-sdk';
 import { Misconfiguration } from '../model/error/Misconfiguration';
+import { ObjectModified } from '../model/error/ObjectModified';
+import { TimedOut } from '../model/error/TimedOut';
 
 export class S3Operations implements Operations {
   private readonly logger: Logger;
@@ -93,9 +95,16 @@ export class S3Operations implements Operations {
   public handleError(error: Error | AWSError, collection: Collection, key?: string): undefined {
     if ((error as AWSError).code) {
       const awsError: AWSError = error as AWSError;
+      /* https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html */
       switch (awsError.code) {
+        case 'PreconditionFailed':
+          throw new ObjectModified(key, collection);
+
         case 'NoSuchKey':
           throw new NotFound(key, collection);
+
+        case 'RequestTimeout':
+          throw new TimedOut(key, collection);
 
         case 'NoSuchBucket':
           throw new Misconfiguration(`${collection['bucket.name']} is not a valid bucket or is not visible/accssible.`);

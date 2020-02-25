@@ -15,12 +15,13 @@ export class HeadObject extends Command {
    * @param key to lookup in the bucket provided
    * @param type
    */
-  public async do(collection: Collection, key: string): Promise<Response | undefined> {
+  public async do(collection: Collection, key: string, onlyOnETag?: string): Promise<Response | undefined> {
     this.logger.trace('do()', { key, collection: collection['bucket.name'] });
 
     const parameters: HeadObjectRequest = {
       Bucket: collection['bucket.name'],
       Key: `${collection['id.prefix'] ? collection['id.prefix'] : ''}${key}`,
+      IfMatch: onlyOnETag,
     };
 
     this.logger.trace('do()', { parameters });
