@@ -6,6 +6,7 @@ import { Command } from '../Command';
 import { Response } from '../Response';
 import { MD5Generator } from '../../model/MD5Generator';
 import { Configuration } from '../../service/Configuration';
+import { Diacritics } from '../../service/Diacritics';
 
 export class PutObject extends Command {
   constructor(s3: S3) {
@@ -17,7 +18,7 @@ export class PutObject extends Command {
    * @param key to lookup in the bucket provided
    * @param type
    */
-  public async do(collection: Collection, key: string, body: string): Promise<Response | undefined> {
+  public async do(collection: Collection, key: string, body: string, metadata?: { [key: string]: string }): Promise<Response | undefined> {
     this.logger.trace('do()', { key, collection: collection['bucket.name'] });
 
     const md5: MD5Generator = Configuration.get('MD5') as MD5Generator;
@@ -30,7 +31,14 @@ export class PutObject extends Command {
       ContentLength: conentLength,
       ContentMD5: md5(body),
       ServerSideEncryption: Configuration.get('SERVER_SIDE_ENCRYPTION') as S3.ServerSideEncryption,
-      // Metadata: this.s3Client.toAWSMetadata(metadata),
+      Metadata: metadata
+        ? Object.keys(metadata)
+            .filter((key: string) => metadata[key] !== undefined)
+            .reduce((newMetadata: { [key: string]: string }, key: string) => {
+              newMetadata[key] = Diacritics.remove('' + metadata[key]);
+              return newMetadata;
+            }, {})
+        : undefined,
       Body: body,
     };
 
