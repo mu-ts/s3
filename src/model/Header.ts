@@ -1,7 +1,6 @@
-// import { Document } from '../service/Document';
-
 export interface Header {
   key: string;
-
-  // [key: keyof Document]: as Document[key];
+  size?: number;
+  eTag?: string;
+  lastModified: Date;
 }

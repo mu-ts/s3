@@ -27,9 +27,9 @@ export interface Operations {
    * can be found an error is thrown.
    *
    * @param object to put.
-   * @param collide (false) if true, will not put the document if another already exists.
+   * @param to put the object too, if object does not have type information on it.
    */
-  put<T>(object: T, collide?: boolean): Promise<T | undefined>;
+  put<T>(object: T, to?: T | string): Promise<T | undefined>;
 
   /**
    * Removes the document, or marks the current version for delete
