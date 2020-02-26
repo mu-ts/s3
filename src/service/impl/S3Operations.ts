@@ -216,7 +216,13 @@ export class S3Operations extends Operations {
     try {
       const response: Response = await this.removeObject.do(collection, key);
 
+      /**
+       * Response does have metadata that might be useful when object versions are better
+       * supported.
+       */
       if (!response.Body) return undefined;
+
+      return undefined;
     } catch (error) {
       return this.handleError(error, collection, key);
     }
