@@ -1,15 +1,20 @@
 import { CopyObjectOutput, CopyObjectRequest } from 'aws-sdk/clients/s3';
 import S3 = require('aws-sdk/clients/s3');
 
-import { Collection } from '../../model/Collection';
-import { Command } from '../Command';
-import { Response } from '../Response';
-import { Configuration } from '../../service/Configuration';
-import { Diacritics } from '../../service/impl/lib/Diacritics';
+import { Logger, LoggerService } from '@mu-ts/logger';
 
-export class CopyObject extends Command {
+import { Collection } from '../../../../model/Collection';
+import { Response } from '../../../../model/Response';
+import { Configuration } from '../../../Configuration';
+
+export class CopyObject {
+  protected readonly logger: Logger;
+  protected readonly s3: S3;
+
   constructor(s3: S3) {
-    super(s3);
+    this.logger = LoggerService.named({ name: this.constructor.name, adornments: { '@mu-ts': 's3' } });
+    this.s3 = s3;
+    this.logger.debug('init()');
   }
 
   /**
@@ -17,24 +22,16 @@ export class CopyObject extends Command {
    * @param key to lookup in the bucket provided
    * @param type
    */
-  public async do(collection: Collection, key: string, to: string, metadata?: { [key: string]: string }): Promise<Response | undefined> {
+  public async do(collection: Collection, key: string, to: Collection): Promise<Response | undefined> {
     this.logger.trace('do()', { key, collection: collection['bucket.name'] });
 
     const parameters: CopyObjectRequest = {
-      Bucket: to,
+      Bucket: to['bucket.name'],
       Key: `${key}`,
       CopySource: `${collection['bucket.name']}/${collection['id.prefix'] ? collection['id.prefix'] : ''}${key}`,
       StorageClass: 'STANDARD',
       ContentType: 'application/json',
       ServerSideEncryption: Configuration.get('SERVER_SIDE_ENCRYPTION') as S3.ServerSideEncryption,
-      Metadata: metadata
-        ? Object.keys(metadata)
-            .filter((key: string) => metadata[key] !== undefined)
-            .reduce((newMetadata: { [key: string]: string }, key: string) => {
-              newMetadata[key] = Diacritics.remove('' + metadata[key]);
-              return newMetadata;
-            }, {})
-        : undefined,
     };
 
     this.logger.trace('do()', { parameters });

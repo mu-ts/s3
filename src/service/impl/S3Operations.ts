@@ -4,49 +4,68 @@ import { v4 } from 'uuid';
 
 import { Logger, LoggerService } from '@mu-ts/logger';
 
-import { Operations } from '../service/Operations';
-import { Header } from '../model/Header';
-import { Collection } from '../model/Collection';
-import { CollectionRegistry } from '../service/CollectionRegistry';
-import { GetObject } from './commands/GetObject';
-import { Response } from './Response';
-import { NotFound } from '../model/error/NotFound';
-import { DocumentDecorator } from '../service/DocumentDecorator';
-import { Misconfiguration } from '../model/error/Misconfiguration';
-import { ObjectModified } from '../model/error/ObjectModified';
-import { TimedOut } from '../model/error/TimedOut';
-import { ListObjects } from './commands/ListObjects';
-import { PutObject } from './commands/PutObject';
-import { IDGenerator } from '../model/functions/IDGenerator';
-import { Configuration } from '../service/Configuration';
-import { Document } from '../model/Document';
-import { MD5Generator } from '../model/functions/MD5Generator';
-import { NoTypeOnObject } from '../model/error/NoTypeOnObject';
-import { SerializerServices } from '../service/SerializerService';
+import { Operations } from '../Operations';
+import { Header } from '../../model/Header';
+import { Collection } from '../../model/Collection';
+import { CollectionRegistry } from '../CollectionRegistry';
+import { GetObject } from './s3/commands/GetObject';
+import { Response } from '../../model/Response';
+import { NotFound } from '../../model/error/NotFound';
+import { DocumentDecorator } from '../DocumentDecorator';
+import { Misconfiguration } from '../../model/error/Misconfiguration';
+import { ObjectModified } from '../../model/error/ObjectModified';
+import { TimedOut } from '../../model/error/TimedOut';
+import { ListObjects } from './s3/commands/ListObjects';
+import { PutObject } from './s3/commands/PutObject';
+import { IDGenerator } from '../../model/functions/IDGenerator';
+import { Configuration } from '../Configuration';
+import { Document } from '../../model/Document';
+import { MD5Generator } from '../../model/functions/MD5Generator';
+import { NoTypeOnObject } from '../../model/error/NoTypeOnObject';
+import { SerializerServices } from '../SerializerService';
+import { HeadObject } from './s3/commands/HeadObject';
+import { CopyObject } from './s3/commands/CopyObject';
+import { RemoveObject } from './s3/commands/RemoveObject';
+import { Diacritics } from './Diacritics';
 
-export class S3Operations implements Operations {
+export class S3Operations extends Operations {
   private readonly logger: Logger;
 
   private readonly documentDecorator: DocumentDecorator;
   private readonly collectionRegistry: CollectionRegistry;
 
   private readonly serializerService: SerializerServices;
+  private readonly diacritics: Diacritics;
 
+  private readonly copyObject: CopyObject;
   private readonly getObject: GetObject;
+  private readonly headObject: HeadObject;
   private readonly listObjects: ListObjects;
   private readonly putObject: PutObject;
+  private readonly removeObject: RemoveObject;
 
-  constructor(s3: S3, serializerService: SerializerServices, collectionRegistry: CollectionRegistry, documentDecorator: DocumentDecorator) {
+  constructor(
+    s3: S3,
+    serializerService: SerializerServices,
+    collectionRegistry: CollectionRegistry,
+    documentDecorator: DocumentDecorator,
+    diacritics: Diacritics
+  ) {
+    super();
     this.logger = LoggerService.named({ name: this.constructor.name, adornments: { '@mu-ts': 's3' } });
 
     this.serializerService = serializerService;
+    this.diacritics = diacritics;
 
     this.documentDecorator = documentDecorator;
     this.collectionRegistry = collectionRegistry;
 
+    this.copyObject = new CopyObject(s3);
     this.getObject = new GetObject(s3);
+    this.headObject = new HeadObject(s3);
     this.listObjects = new ListObjects(s3);
     this.putObject = new PutObject(s3);
+    this.removeObject = new RemoveObject(s3);
 
     this.logger.debug('init()');
   }
@@ -57,9 +76,8 @@ export class S3Operations implements Operations {
    * @param key to lookup in S3.
    * @param from location to resolve S3 bucket from.
    */
-  public async get<T>(key: string, from: T | string): Promise<T | undefined> {
+  public async get<T>(from: T | string, key: string): Promise<T | undefined> {
     const collection: Collection | undefined = this.collectionRegistry.recall(from);
-
     if (!collection) throw new NoTypeOnObject();
 
     try {
@@ -87,7 +105,6 @@ export class S3Operations implements Operations {
    */
   public async list<T>(from: T | string, prefix?: string, continuationToken?: string): Promise<Header[] | undefined> {
     const collection: Collection | undefined = this.collectionRegistry.recall(from);
-
     if (!collection) throw new NoTypeOnObject();
 
     try {
@@ -98,10 +115,10 @@ export class S3Operations implements Operations {
       const rows: Header[] = response.Rows.map(
         (item: S3.Object) =>
           ({
-            key: item.Key,
-            eTag: item.ETag,
-            size: item.Size,
-            lastModified: item.LastModified,
+            Key: item.Key,
+            ETag: item.ETag,
+            Size: item.Size,
+            LastModified: item.LastModified,
           } as Header)
       );
 
@@ -114,16 +131,21 @@ export class S3Operations implements Operations {
   }
 
   /**
-   *
+   * @param type of object.
    * @param object to put.
    */
-  public async put<T>(object: T, to?: T | string): Promise<T | undefined> {
+  public async put<T>(to: T | string, object: T): Promise<T | undefined> {
     const collection: Collection | undefined = this.collectionRegistry.recall(to || object.constructor.name);
-
     if (!collection) throw new NoTypeOnObject();
 
     try {
       const document: Document = this.documentDecorator.get(object);
+      const metadata: S3.Metadata = collection['fields.metadata']
+        ? collection['fields.metadata'].reduce((metadata: S3.Metadata, field: string) => {
+            if ((object as any)[field]) metadata[field] = this.diacritics.remove(String((object as any)[field]));
+            return metadata;
+          }, {})
+        : undefined;
       const serializedBody: string = this.serializerService.serialize(object, collection, document);
       const md5Generator: MD5Generator = Configuration.get('MD5') as MD5Generator;
       const md5: string = md5Generator(serializedBody);
@@ -139,7 +161,7 @@ export class S3Operations implements Operations {
       const idName: string = collection['id.name'];
       const id: string = (object as any)[idName] || (collection['id.generator'] as IDGenerator)(object, v4());
 
-      const response: Response = await this.putObject.do(collection, id, serializedBody);
+      const response: Response = await this.putObject.do(collection, id, serializedBody, metadata);
 
       if (!response.Body) return undefined;
 
@@ -153,16 +175,77 @@ export class S3Operations implements Operations {
     }
   }
 
-  public async remove<T>(key: string, from: T | string): Promise<T | undefined> {
-    return Promise.resolve(undefined);
+  /**
+   *
+   * @param from
+   * @param key
+   * @param to
+   */
+  public async copy<F, T>(from: F | string, key: string, to: T): Promise<T | undefined> {
+    const collection: Collection | undefined = this.collectionRegistry.recall(from);
+    if (!collection) throw new NoTypeOnObject();
+
+    const toCollection: Collection | undefined = this.collectionRegistry.recall(to);
+
+    try {
+      const response: Response = await this.copyObject.do(collection, key, toCollection);
+
+      if (!response.Body) return undefined;
+
+      const object: any = this.serializerService.deserialize(response.Body, toCollection);
+
+      this.documentDecorator.decorate(object, response.Metadata);
+
+      // TODO The type needs to be converted so the type isnt mappted to the same type.
+
+      return object as T;
+    } catch (error) {
+      return this.handleError(error, collection, key);
+    }
   }
 
-  public async head<T>(key: string, from: T | string): Promise<Header | undefined> {
-    return Promise.resolve(undefined);
+  /**
+   *
+   * @param from
+   * @param key
+   */
+  public async remove<T>(from: T | string, key: string): Promise<undefined> {
+    const collection: Collection | undefined = this.collectionRegistry.recall(from);
+    if (!collection) throw new NoTypeOnObject();
+
+    try {
+      const response: Response = await this.removeObject.do(collection, key);
+
+      if (!response.Body) return undefined;
+    } catch (error) {
+      return this.handleError(error, collection, key);
+    }
   }
 
-  public async select<T, F>(sql: string, key: string, from: F | string, as?: T): Promise<T | undefined> {
-    return Promise.resolve(undefined);
+  /**
+   *
+   * @param from
+   * @param key
+   */
+  public async head<T>(from: T | string, key: string): Promise<Header | undefined> {
+    const collection: Collection | undefined = this.collectionRegistry.recall(from);
+    if (!collection) throw new NoTypeOnObject();
+
+    try {
+      const response: Response = await this.headObject.do(collection, key);
+
+      if (!response.Body) return undefined;
+
+      const object: any = this.serializerService.deserialize(response.Body, collection);
+
+      this.documentDecorator.decorate(object, response.Metadata);
+
+      //TODO lookup tags and update object with tags.
+
+      return object;
+    } catch (error) {
+      return this.handleError(error, collection, key);
+    }
   }
 
   /**
@@ -180,7 +263,8 @@ export class S3Operations implements Operations {
           throw new ObjectModified(key, collection);
 
         case 'NoSuchKey':
-          throw new NotFound(key, collection);
+          if (this.isSafe) throw new NotFound(key, collection);
+          else return undefined;
 
         case 'RequestTimeout':
           throw new TimedOut(key, collection);

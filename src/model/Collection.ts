@@ -25,9 +25,14 @@ export interface Collection {
 
   /**
    * Fiels that will not be serialized but instead be converted
-   * to tags on the document.
+   * to metadata on the document.
    */
-  'fields.tag'?: string[];
+  'fields.metadata'?: string[];
+
+  /**
+   * Fields that are marked as metadata, but that will not be removed from the object.
+   */
+  'fields.metadata.preserved'?: string[];
 
   /**
    * Fields that will be redacted, and not serialized nor tagged. Omitted completely from S3.

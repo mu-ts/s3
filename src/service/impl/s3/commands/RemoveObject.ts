@@ -1,13 +1,19 @@
 import { DeleteObjectRequest, DeleteObjectOutput } from 'aws-sdk/clients/s3';
 import S3 = require('aws-sdk/clients/s3');
 
-import { Collection } from '../../model/Collection';
-import { Command } from '../Command';
-import { Response } from '../Response';
+import { Logger, LoggerService } from '@mu-ts/logger';
 
-export class RemoveObject extends Command {
+import { Collection } from '../../../../model/Collection';
+import { Response } from '../../../../model/Response';
+
+export class RemoveObject {
+  protected readonly logger: Logger;
+  protected readonly s3: S3;
+
   constructor(s3: S3) {
-    super(s3);
+    this.logger = LoggerService.named({ name: this.constructor.name, adornments: { '@mu-ts': 's3' } });
+    this.s3 = s3;
+    this.logger.debug('init()');
   }
 
   /**

@@ -1,16 +1,21 @@
 import { PutObjectRequest, PutObjectOutput } from 'aws-sdk/clients/s3';
 import S3 = require('aws-sdk/clients/s3');
 
-import { Collection } from '../../model/Collection';
-import { Command } from '../Command';
-import { Response } from '../Response';
-import { MD5Generator } from '../../model/functions/MD5Generator';
-import { Configuration } from '../../service/Configuration';
-import { Diacritics } from '../../service/impl/lib/Diacritics';
+import { Logger, LoggerService } from '@mu-ts/logger';
 
-export class PutObject extends Command {
+import { Collection } from '../../../../model/Collection';
+import { Response } from '../../../../model/Response';
+import { MD5Generator } from '../../../../model/functions/MD5Generator';
+import { Configuration } from '../../../Configuration';
+
+export class PutObject {
+  protected readonly logger: Logger;
+  protected readonly s3: S3;
+
   constructor(s3: S3) {
-    super(s3);
+    this.logger = LoggerService.named({ name: this.constructor.name, adornments: { '@mu-ts': 's3' } });
+    this.s3 = s3;
+    this.logger.debug('init()');
   }
 
   /**
@@ -31,14 +36,7 @@ export class PutObject extends Command {
       ContentLength: conentLength,
       ContentMD5: md5(body),
       ServerSideEncryption: Configuration.get('SERVER_SIDE_ENCRYPTION') as S3.ServerSideEncryption,
-      Metadata: metadata
-        ? Object.keys(metadata)
-            .filter((key: string) => metadata[key] !== undefined)
-            .reduce((newMetadata: { [key: string]: string }, key: string) => {
-              newMetadata[key] = Diacritics.remove('' + metadata[key]);
-              return newMetadata;
-            }, {})
-        : undefined,
+      Metadata: metadata,
       Body: body,
     };
 

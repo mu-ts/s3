@@ -29,7 +29,9 @@ export class JSONSerializerService implements SerializerServices {
       (name: string, value: any) => {
         /* Filter out redacted fields. */
         if (collection) {
-          if (collection['fields.tag'] && collection['fields.tag'].includes(name)) return undefined;
+          if (collection['fields.metadata'] && collection['fields.metadata'].includes(name) && !collection['fields.metadata.preserved'].includes(name)) {
+            return undefined;
+          }
           if (collection['fields.ignore'] && collection['fields.ignore'].includes(name)) return undefined;
 
           let newValue: any = value;
@@ -66,11 +68,16 @@ export class JSONSerializerService implements SerializerServices {
    * @param collection (optional) that this object will belong to.
    */
   // @ts-ignore
-  public deserialize<T>(body: string, collection?: Collection): T {
+  public deserialize<T>(body: string, collection?: Collection, metadata?: any): T {
     // @ts-ignore
     const deserialized: T = JSON.parse(body, (name: string, value: any) => {
       if (typeof value === 'string' && this.dateRegex.test(value)) return new Date(value);
       if (collection) {
+        /**
+         * Populate the information from metadata.
+         */
+        if (collection['fields.metadata'] && collection['fields.metadata'].includes(name)) return metadata[name];
+
         let newValue: any = value;
 
         if (collection['fields.encode'] && collection['fields.encode'].includes(name)) {

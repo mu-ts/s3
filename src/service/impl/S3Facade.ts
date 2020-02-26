@@ -1,7 +1,7 @@
 import { /* AWSError, */ S3, config } from 'aws-sdk';
 
 import { LoggerService, Logger } from '@mu-ts/logger';
-import { Configuration } from './Configuration';
+import { Configuration } from '../Configuration';
 
 export class S3Facade {
   private static _i: S3Facade;

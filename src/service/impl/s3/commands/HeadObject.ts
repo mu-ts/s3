@@ -1,13 +1,20 @@
 import { HeadObjectRequest, HeadObjectOutput } from 'aws-sdk/clients/s3';
 import S3 = require('aws-sdk/clients/s3');
 
-import { Collection } from '../../model/Collection';
-import { Command } from '../Command';
-import { Response } from '../Response';
+import { Logger, LoggerService } from '@mu-ts/logger';
 
-export class HeadObject extends Command {
+import { Collection } from '../../../../model/Collection';
+import { Response } from '../../../../model/Response';
+import { Header } from '../../../../model/Header';
+
+export class HeadObject {
+  protected readonly logger: Logger;
+  protected readonly s3: S3;
+
   constructor(s3: S3) {
-    super(s3);
+    this.logger = LoggerService.named({ name: this.constructor.name, adornments: { '@mu-ts': 's3' } });
+    this.s3 = s3;
+    this.logger.debug('init()');
   }
 
   /**
@@ -32,6 +39,6 @@ export class HeadObject extends Command {
 
     return {
       Metadata: s3Response,
-    } as Response;
+    } as Header;
   }
 }

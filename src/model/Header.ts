@@ -1,6 +1,11 @@
+import { Metadata } from 'aws-sdk/clients/s3';
+
 export interface Header {
-  key: string;
-  size?: number;
-  eTag?: string;
-  lastModified: Date;
+  Key: string;
+  LastModified?: Date;
+  Size?: number;
+  ContentLength?: number;
+  ETag?: string;
+  ContentType?: string;
+  Metadata?: Metadata;
 }
