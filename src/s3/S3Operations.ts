@@ -71,6 +71,8 @@ export class S3Operations implements Operations {
 
       this.documentDecorator.decorate(object, response.Metadata);
 
+      //TODO lookup tags and update object with tags.
+
       return object;
     } catch (error) {
       return this.handleError(error, collection, key);
