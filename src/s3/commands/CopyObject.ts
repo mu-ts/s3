@@ -5,7 +5,7 @@ import { Collection } from '../../model/Collection';
 import { Command } from '../Command';
 import { Response } from '../Response';
 import { Configuration } from '../../service/Configuration';
-import { Diacritics } from '../../service/Diacritics';
+import { Diacritics } from '../../service/impl/lib/Diacritics';
 
 export class CopyObject extends Command {
   constructor(s3: S3) {

@@ -1,4 +1,4 @@
-import { IDGenerator } from './IDGenerator';
+import { IDGenerator } from './functions/IDGenerator';
 
 export interface Collection {
   /**
@@ -27,10 +27,31 @@ export interface Collection {
    * Fiels that will not be serialized but instead be converted
    * to tags on the document.
    */
-  tag?: string[];
+  'fields.tag'?: string[];
 
   /**
    * Fields that will be redacted, and not serialized nor tagged. Omitted completely from S3.
    */
-  ignore?: string[];
+  'fields.ignore'?: string[];
+
+  /**
+   * Fields that will be hashed before being persisted.
+   */
+  'fields.encode'?: string[];
+
+  /**
+   * Algorithm to use when hashing/dehashing the field value.
+   */
+  'fields.encode.algorithm'?: string[];
+
+  /**
+   * Fields that will be encrypted before being persisted.
+   */
+  'fields.encrypt'?: string[];
+
+  /**
+   * Index paired with fields.encrypt to preserve what key is used to
+   * encrypt/decrypt the value.
+   */
+  'fields.encrypt.secret'?: Buffer[];
 }

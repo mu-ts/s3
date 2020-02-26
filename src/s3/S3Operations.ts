@@ -4,14 +4,12 @@ import { v4 } from 'uuid';
 
 import { Logger, LoggerService } from '@mu-ts/logger';
 
-import { Operations } from '../model/Operations';
+import { Operations } from '../service/Operations';
 import { Header } from '../model/Header';
 import { Collection } from '../model/Collection';
 import { CollectionRegistry } from '../service/CollectionRegistry';
 import { GetObject } from './commands/GetObject';
 import { Response } from './Response';
-import { Deserializer } from '../model/Deserialize';
-import { Serializer } from '../model/Serialize';
 import { NotFound } from '../model/error/NotFound';
 import { DocumentDecorator } from '../service/DocumentDecorator';
 import { Misconfiguration } from '../model/error/Misconfiguration';
@@ -19,11 +17,12 @@ import { ObjectModified } from '../model/error/ObjectModified';
 import { TimedOut } from '../model/error/TimedOut';
 import { ListObjects } from './commands/ListObjects';
 import { PutObject } from './commands/PutObject';
-import { IDGenerator } from '../model/IDGenerator';
+import { IDGenerator } from '../model/functions/IDGenerator';
 import { Configuration } from '../service/Configuration';
 import { Document } from '../model/Document';
-import { MD5Generator } from '../model/MD5Generator';
+import { MD5Generator } from '../model/functions/MD5Generator';
 import { NoTypeOnObject } from '../model/error/NoTypeOnObject';
+import { SerializerServices } from '../service/SerializerService';
 
 export class S3Operations implements Operations {
   private readonly logger: Logger;
@@ -31,18 +30,16 @@ export class S3Operations implements Operations {
   private readonly documentDecorator: DocumentDecorator;
   private readonly collectionRegistry: CollectionRegistry;
 
-  private readonly deserializer: Deserializer;
-  private readonly serializer: Serializer;
+  private readonly serializerService: SerializerServices;
 
   private readonly getObject: GetObject;
   private readonly listObjects: ListObjects;
   private readonly putObject: PutObject;
 
-  constructor(s3: S3, deserializer: Deserializer, serializer: Serializer, collectionRegistry: CollectionRegistry, documentDecorator: DocumentDecorator) {
+  constructor(s3: S3, serializerService: SerializerServices, collectionRegistry: CollectionRegistry, documentDecorator: DocumentDecorator) {
     this.logger = LoggerService.named({ name: this.constructor.name, adornments: { '@mu-ts': 's3' } });
 
-    this.serializer = serializer;
-    this.deserializer = deserializer;
+    this.serializerService = serializerService;
 
     this.documentDecorator = documentDecorator;
     this.collectionRegistry = collectionRegistry;
@@ -70,7 +67,7 @@ export class S3Operations implements Operations {
 
       if (!response.Body) return undefined;
 
-      const object: any = this.deserializer(response.Body, collection);
+      const object: any = this.serializerService.deserialize(response.Body, collection);
 
       this.documentDecorator.decorate(object, response.Metadata);
 
@@ -125,7 +122,7 @@ export class S3Operations implements Operations {
 
     try {
       const document: Document = this.documentDecorator.get(object);
-      const serializedBody: string = this.serializer(object, collection, document);
+      const serializedBody: string = this.serializerService.serialize(object, collection, document);
       const md5Generator: MD5Generator = Configuration.get('MD5') as MD5Generator;
       const md5: string = md5Generator(serializedBody);
 
@@ -144,7 +141,7 @@ export class S3Operations implements Operations {
 
       if (!response.Body) return undefined;
 
-      const returnObject: any = this.deserializer(response.Body, collection);
+      const returnObject: any = this.serializerService.deserialize(response.Body, collection);
 
       this.documentDecorator.decorate(returnObject, response.Metadata);
 

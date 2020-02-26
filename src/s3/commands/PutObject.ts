@@ -4,9 +4,9 @@ import S3 = require('aws-sdk/clients/s3');
 import { Collection } from '../../model/Collection';
 import { Command } from '../Command';
 import { Response } from '../Response';
-import { MD5Generator } from '../../model/MD5Generator';
+import { MD5Generator } from '../../model/functions/MD5Generator';
 import { Configuration } from '../../service/Configuration';
-import { Diacritics } from '../../service/Diacritics';
+import { Diacritics } from '../../service/impl/lib/Diacritics';
 
 export class PutObject extends Command {
   constructor(s3: S3) {

@@ -52,11 +52,12 @@ Happy defaults to reduce necessary configuration. Including entityt names, just 
 * `.pipe` or `.stream` to create read/write or duplex streams for piping operations.
 
 #### DECORATORS
-* `@s3key( idGenerator? )` annotate a classes id attribute as the object key. Current s3 implementation is bugged with this.
-* `@s3bucket( { configuration })` annotate a class to configure it for a specific bucket.
-* `@s3prefix( prefix )` annotate a class to have all id operations be prefixed with this value.
-* `@s3encrypt()` The field will be encrypted using the default encryption configuration.
-* `@s3redact()` Do not save this data to S3.
+* `@key( idGenerator? )` annotate a classes id attribute as the object key. Current s3 implementation is bugged with this.
+* `@collection( { configuration })` annotate a class to configure it for a specific bucket.
+* `@tag()` Persist as a tag, not within the object body.
+* `@ignore()` Do not save this data to S3 in any form.
+* `@hash(algorithm?: string = 'sha256')` will hash the value before persisting it.
+* `@encrypt(key: string | Promise<string>)` encrypts a value using the secret provided.
 
 ## Exceptions
 
