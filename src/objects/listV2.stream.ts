@@ -20,7 +20,7 @@ class ListObjectsReadable extends Readable {
 
       const { Contents, ContinuationToken } = await listObjectsV2({ Bucket: this.bucket, Prefix: this.prefix, ContinuationToken: this.continuationToken, MaxKeys: this.batchSize || 1000 });
 
-      Contents.forEach((object: any) => this.push(object));
+      Contents!.forEach((object: any) => this.push(object));
 
       this.continuationToken = ContinuationToken;
     } while (this.continuationToken);

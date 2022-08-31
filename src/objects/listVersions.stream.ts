@@ -20,7 +20,7 @@ class ListVersionReadable extends Readable {
 
       const { Versions, KeyMarker } = await listObjectVersions({ Bucket: this.bucket, Prefix: this.prefix, KeyMarker: this.continuationToken, MaxKeys: this.batchSize || 1000 });
 
-      Versions.forEach((object: any) => this.push(object));
+      Versions!.forEach((object: any) => this.push(object));
 
       this.continuationToken = KeyMarker;
     } while (this.continuationToken);

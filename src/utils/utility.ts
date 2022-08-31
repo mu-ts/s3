@@ -11,7 +11,7 @@ export function setClassProperty(constructor: Function, key: string, value: stri
   );
 }
 
-export function getClassProperty(constructor: Function, key: string): string {
+export function getClassProperty(constructor: Function, key: string): string | undefined {
   const descriptor: PropertyDescriptor | undefined = Object.getOwnPropertyDescriptor(constructor, key);
   if (descriptor) return descriptor.value;
   return undefined;

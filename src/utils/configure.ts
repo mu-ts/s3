@@ -5,7 +5,7 @@ export let bucketName: string | undefined;
 /**
  * Should work fine for Lambda.
  */
-export let client: S3Client | undefined = new S3Client({ region: process.env.REGION ||  process.env.AWS_REGION || process.env.AWS_LAMBDA_REGION });
+export let client: S3Client = new S3Client({ region: process.env.REGION ||  process.env.AWS_REGION || process.env.AWS_LAMBDA_REGION });
 
 /**
  * 
