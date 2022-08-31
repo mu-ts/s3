@@ -1,24 +1,16 @@
-import { Operations } from './service/Operations';
-import { S3Operations } from './service/impl/S3Operations';
-import { S3Facade } from './service/impl/S3Facade';
-import { JSONSerializerService } from './service/impl/JSONSerializerService';
-import { CollectionRegistryImpl } from './service/impl/CollectionRegistryImpl';
-import { DocumentDecoratorImpl } from './service/impl/DocumentDecoratorImpl';
-import { Diacritics } from './service/impl/Diacritics';
+export * from './objects/copy';
+export * from './objects/delete';
+export * from './objects/get';
+export * from './objects/head';
+export * from './objects/list';
+export * from './objects/listV2';
+export * from './objects/listV2.stream';
+export * from './objects/listVersions';
+export * from './objects/listVersions.stream';
+export * from './objects/put';
+export * from './objects/put.stream';
+export * from './objects/restore';
+export * from './objects/restore.stream';
+export * from './objects/selectContents';
 
-const operations: Operations = new S3Operations(
-  S3Facade.s3,
-  new JSONSerializerService(),
-  new CollectionRegistryImpl(),
-  new DocumentDecoratorImpl(),
-  new Diacritics()
-);
-
-export const copy = operations.copy;
-export const get = operations.get;
-export const head = operations.head;
-export const list = operations.list;
-export const put = operations.put;
-export const remove = operations.remove;
-
-export const safe = operations.safe;
+export { setConfiguration, setBucket } from './utils/configure';

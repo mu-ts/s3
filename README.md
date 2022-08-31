@@ -1,108 +1,78 @@
 # s3
 
-Easier interaction with S3.
+Simple functional wrapper around S3 SDK to make most S3 interactions a single function call.
 
-Carry over from https://github.com/matt-filion/s3-db
+Influenced by https://github.com/matt-filion/s3-db
 
-# Proposal
+# Usage
 
-Stateless implementation, so less concern about 'collections' and documents focus on simplifying interaction with S3.
-Typed exceptions for easier error handling.
-Happy defaults to reduce necessary configuration. Including entityt names, just take it from the object.
+I really hope you already know how to NPM install something. So we will skip that. This also gets rid of the need for being a developer elitist throughout the rest of the doc!
 
-## Defaults
-
-* ROOT_NAME = 'mu-ts-s3' // Used for logging, and bucket naming and adding context where multiple instances may be present.
-* REGION = AWS_REGION | REGION | 'us-est-1'
-* BUCKET_PREFIX = () => `${await configurations.get('STAGE').${await configurations.get('REGION')}.${await configurations.get('ROOT_NAME')}-{{RESOURCE_NAME}}`;
-* RETRIES = 3
-* PAGE_SIZE = 100
-* SERIALIZER = () => JSON.stringify
-* DESERIALIZER = () => JSON.parse
-* UUID = 'v4'
-* AWSKMS = AES256 // If not AES256 the KMS key to use to use when interacting with S3.
-
-### APIS
-
-#### CONFIGURATION/DEFAULTS
-* `configure({ ... })` to configure the S3 singleton defaults, like page size, bucket name or region.
-* `update( @mu-ts/configurations )` to look for configuration values
-
-#### RAW ACTIONS
-* `list( prefix?, from, continuationToken )` to return a list of objects in the type defined.
-* `put( document, overwrite=true )` put a document, optionally dont allow overwritting of an existing document. If overwrite is false use `.exists` and if id on doc already exists throw error.
-* `get(id, from)` to load a document and have it transformed into the target type.
-* `remove( id, from )` delets a document if it exists.
-* `head( id, from )` returns the head object for the document.
-* `copy( key, from, to )` copies a document into the destination bucket.
-* `select( id, sql, from, as?)` returns the data from the document, per the selectObjectContent behavior of S3.
-
-#### SUGAR
-* `modify( id, from, {changesToApply} )` make sure object exists, load it, apply changes, check eTag/MD5 when saving, if collission, re-try. Continue until re-tries exceeded.
-* `move( id, from, destination )` moves a document (including origin delete) to the destination bucket.
-* `exists( id, from, md5/etag? )` returns true if a head object is found. Wonder if providing etag or md5 as optional secondary attributes will be helpful in making sure the specific content is in place. Maybe supporting object versions as well.
-* `mark()` Marks an objects current state as the rollback point.
-* `rollback()` Rolls an object back to its most recent marker. Lazy transaction stuff.
-
-#### MODIFIERS
-* `.safe` hint to prefix calls, that will cause exceptions to be thrown that would otherwise be swallowed like a document not existing. `const user:User = await S3DB.safe.get( 'docID', User )`
-* `.retries(4)` attempt the operation the specified number of times until success, and throw the last encountered failure if not. Will analyze the response of the errors returned from S3 and only retry when a retry is permitted.
-* `.timeout( ms )` how long to give the operation before timing out.
-* `.transaction` to executed the chained commands together as a single operation, and rollback on failure of any item.
-* `.pipe` or `.stream` to create read/write or duplex streams for piping operations.
-
-#### DECORATORS
-* `@key( idGenerator? )` annotate a classes id attribute as the object key. Current s3 implementation is bugged with this.
-* `@collection( { configuration })` annotate a class to configure it for a specific bucket.
-* `@tag()` Persist as a tag, not within the object body.
-* `@ignore()` Do not save this data to S3 in any form.
-* `@hash(algorithm?: string = 'sha256')` will hash the value before persisting it.
-* `@encrypt(key: string | Promise<string>)` encrypts a value using the secret provided.
-
-## Exceptions
-
-* NotFound(bucket, id) - Document doesnt exist.
-* ConccurrentModification( bucket, id, eTag, md5) - The document was changed while it was being modified.
-  
-## Experiments
-
-### Clean get operations.
+Example of loading an object from S3 and parsing it as JSON.
 
 ```
-import { get, safe } from '@mu-ts/s3';
-const user: User | undefined = get( id );
-const user: User = safe.get(id); // Throws error if doesnt exist.
-```
 
-### Class decoration.
-```
-@s3bucket({
-  prefix: 'users', // Added before all ids, even when generated.
-  bucket: 'postfix or ARN', // If not in ARN prefix, assume its just a postfix and use the default bucket pattern.
-  
-})
-@s3prefix('prefix') //Does it make to have more individual decorators?
-class User {
-  @s3key( (user:User, uuid:string) => uuid )
-  id: string;
-  
-}
-```
+import { configure, getObject } from '@mu-ts/s3';
 
-### Modify
+/**
+ * This is not needed if running in lambda, as the region will be resolved via `process.env`.
+ */
+configure({region: 'us-east-1'});
 
-So apply updates to the stored document, and provide a function to modify the number of attempts (to override defaults.)
+const { Body } = await getObject({ Bucket: 'my.lil.bucky', Key: '8765309' });
+const guts: object = JSON.parse(Body);
 
 ```
-import { modify, retries } from '@mu-ts/s3';
-const update: any = { name: 'tuesday', dayOfWeek: 'Jebidiah' };
-const user: User = modify(id, update);
 
-// Multiple Updates to Apply
-const update: any = { name: 'tuesday', dayOfWeek: 'Jebidiah' };
-const updateTwo: any = { sex:'none', age: 9123 };
-const updateFunction: (original:User, updatedUser:User) => { do things };
+## Set Bucket
 
-const user: User = retries(4).modify(id, update, updateTwo, updateFunction);
+Sometimes you will have a chain of operations on the same bucket, as the entire scope of execution. In those cases you can use `setBucket` which will globally define the bucket for each request (if one is not provided).
+
+
 ```
 
+import { configure, setBucket, getObject } from '@mu-ts/s3';
+
+/**
+ * This is not needed if running in lambda, as the region will be resolved via `process.env`.
+ */
+configure({region: 'us-east-1'});
+
+/**
+ * Set the bucket globally
+ */
+setBucket('my.lil.bucky');
+
+/**
+ * Omit the Bucket attribute from each request.
+ */
+const { Body } = await getObject({ Key: '8765309' });
+const guts: object = JSON.parse(Body);
+
+delete guts.thing;
+
+/**
+ * Omit the Bucket attribute from each request.
+ */
+const { VersionId } = await putObject({ Key: '8765309', Body: JSON.stringify(guts) });
+
+```
+
+## API's
+
+The AWS sdk input/output interfaces are fully referenced and respected. However since we make use of Partial so that Bucket can be defaulted, you will need to do your own work to ensure that you are providing all required attributes.
+
+* copyObject
+* deleteObject
+* getObject
+* headObject
+* listObjects
+* listObjectsV2
+* listObjectsV2Stream
+* listVersions
+* listVersionsStream
+* putObject
+* putObjectStream
+* restoreObject
+* restoreObjectStream
+* selectObjectContent
