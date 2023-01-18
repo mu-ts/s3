@@ -10,8 +10,7 @@ import { UUIDV5 } from '../model/UUIDV5';
  */
 export function id(generator: IDGenerator | 'uuid' | UUIDV5): any {
   return (target: any, propertyKey: string, descriptor: PropertyDescriptor): PropertyDescriptor => {
-    BucketRegistry.set(target, 'id-attribute', propertyKey);
-    BucketRegistry.set(target, 'id-generator', generator);
+    BucketRegistry.setId(target, propertyKey, generator);
     return descriptor;
   };
 }

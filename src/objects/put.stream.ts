@@ -1,6 +1,6 @@
 import { PutObjectCommandInput } from "@aws-sdk/client-s3";
 import { Writable } from "stream";
-import { putObject } from "./put";
+import { putObject } from "./putObject";
 
 class PutObjectWritable extends Writable {
 

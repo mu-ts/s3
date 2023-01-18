@@ -46,7 +46,19 @@ export class BucketRegistry {
     return configuration;
   }
 
-  public static set(clazz: Function | string, name: string, value: RegistryValue): void {
+  public static setId(clazz: Function | string, attributeName: string, config: string | IDGenerator | UUIDV5) {
+    this.set(clazz, 'id', attributeName);
+    this.set(clazz, 'id-generator', config);
+  }
+
+  public static getId(clazz: Function | string): { attribute: string, strategy?: string | IDGenerator | UUIDV5 } {
+    return {
+      attribute: this.get(clazz, 'id') as string,
+      strategy: this.get(clazz, 'id-generator') as string | IDGenerator | UUIDV5,
+    }
+  }
+
+  private static set(clazz: Function | string, name: string, value: RegistryValue): void {
     if (!this.instance().ledger[clazz.constructor.name]) this.instance().ledger[clazz.constructor.name] = {};
     this.instance().ledger[clazz.constructor.name][name] = value;
   }
@@ -63,3 +75,4 @@ export class BucketRegistry {
     }
   }
 }
+

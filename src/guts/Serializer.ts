@@ -20,13 +20,12 @@ export class Serializer {
    * @param document (optional) attached to this object.
    */
   // @ts-ignore
-  public serialize<T>(object: T, bucket: Function | string): string {
-    const bucketName: string = BucketRegistry.getBucketName(bucket);
+  public serialize<T>(object: object, clazz: Function): string {
     const serialized: string = JSON.stringify(
       object,
       (name: string, value: any) => {
         /* Filter out redacted fields. */
-        const attributes: AttributeConfiguration = BucketRegistry.getAttributes(bucketName, name);
+        const attributes: AttributeConfiguration = BucketRegistry.getAttributes(clazz, name);
 
         if (attributes.ignored || attributes.tag) return undefined;
         
