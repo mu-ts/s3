@@ -1,0 +1,1 @@
+export type IDGenerator = <T>(object: T) => string;
