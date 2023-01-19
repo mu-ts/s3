@@ -1,5 +1,3 @@
-import { CipherCCMTypes } from "crypto";
-
 export interface AttributeConfiguration {
   encrypted?: boolean;
   encryptSecret?: string;

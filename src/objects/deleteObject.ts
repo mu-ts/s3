@@ -1,4 +1,4 @@
-import { DeleteObjectCommandInput, DeleteObjectCommand, DeleteObjectOutput  } from "@aws-sdk/client-s3";
+import { DeleteObjectCommandInput, DeleteObjectCommand, DeleteObjectCommandOutput  } from "@aws-sdk/client-s3";
 import { BucketRegistry } from "../guts/BucketRegistry";
 import { Client } from "../guts/Client";
 
@@ -16,7 +16,7 @@ export async function deleteObject(id: string, bucket: Function | 'string', vers
     VersionId: version,
   }
 
-  const results: DeleteObjectOutput = await Client.instance().send(new DeleteObjectCommand(input));
+  const results: DeleteObjectCommandOutput = await Client.instance().send(new DeleteObjectCommand(input));
 
   return results.VersionId;
 }

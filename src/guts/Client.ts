@@ -1,14 +1,7 @@
 import {
-  DeleteObjectCommand, DeleteObjectCommandOutput,
-  GetObjectCommand, GetObjectCommandOutput,
-  HeadObjectCommand, HeadObjectOutput,
-  PutObjectCommand, PutObjectOutput,
-  S3Client
+  S3Client, ServiceInputTypes, ServiceOutputTypes,  
 } from "@aws-sdk/client-s3";
 import { Serializer } from "./Serializer";
-
-type CommandInput = DeleteObjectCommand | GetObjectCommand | HeadObjectCommand | PutObjectCommand;
-type CommandOutput = DeleteObjectCommandOutput | GetObjectCommandOutput | HeadObjectOutput | PutObjectOutput;
 
 export class Client {
   private static _instance: Client;
@@ -22,8 +15,8 @@ export class Client {
     this.serializer = new Serializer();
   }
 
-  public async send(command: CommandInput): Promise<CommandOutput> {
-    const response: CommandOutput = await this.client.send(command);
+  public async send<Input extends ServiceInputTypes, Output extends ServiceOutputTypes>(command: Input): Promise<Output> {
+    const response: Output = await this.client.send<Input, Output>(command as any);
     return response;
   }
 

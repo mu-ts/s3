@@ -1,8 +1,10 @@
-import { AttributeConfiguration } from '../model/AttributeConfiguration';
-import { IDGenerator } from '../model/IDGenerator';
-import { UUIDV5 } from '../model/UUIDV5';
+import { AttributeConfiguration } from './model/AttributeConfiguration';
+import { Constructor } from './model/Constructor';
+import { IDGenerator } from './model/IDGenerator';
+import { UUIDV5 } from './model/UUIDV5';
 
-type RegistryValue = string | IDGenerator | UUIDV5 | AttributeConfiguration;
+
+type RegistryValue = string | IDGenerator | UUIDV5 | AttributeConfiguration | Constructor;
 
 export class BucketRegistry {
   private static _instance: BucketRegistry;
@@ -20,7 +22,12 @@ export class BucketRegistry {
   }
 
   public static register(clazz: Function, bucket: string): void {
-    this.instance().ledger[clazz.constructor.name] = { bucket };
+    this.instance().ledger[clazz.constructor.name] = { bucket, constructor: clazz.constructor as Constructor };
+  }
+
+  public static getConstructor(clazz: Function | string): Constructor {
+    const constructor: Constructor = this.get(clazz, 'constructor') as Constructor;
+    return constructor;
   }
 
   public static setBucketName(clazz: Function, value: RegistryValue): void {

@@ -3,13 +3,14 @@ import { BucketRegistry } from "../guts/BucketRegistry";
 import { Client } from "../guts/Client";
 
 /**
- * Retrieves an item from the bucket and serializes it into an object.
+ * Lightweight check to see if the object exists, without having to load the whole object.
+ *
  * @param id of the item to delete.
  * @param bucket annotated object or name of the bucket.
  * @param version to delete (if provided).
  * @returns the version id (if returned) of the item deleted.
  */
-export async function headObject<T extends Function>(id: string, bucket: T | string, version?: string): Promise<Record<string, string> | undefined> {
+export async function headObject<T extends Function>(id: string, bucket: T | string, version?: string): Promise<boolean> {
   const input: HeadObjectCommandInput = {
     Bucket: BucketRegistry.getBucketName(bucket),
     Key: id,
@@ -18,11 +19,7 @@ export async function headObject<T extends Function>(id: string, bucket: T | str
 
   const result: HeadObjectCommandOutput | undefined = await Client.instance().send(new HeadObjectCommand(input));
 
-  if (!result) return undefined;
+  if (!result) return false;
 
-  const metadata: Record<string, string> = result.Metadata || {};
-
-  if (result.ETag) metadata['_etag'] = result.ETag as string;
-
-  return metadata;
+  return true;
 }
