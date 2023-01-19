@@ -10,7 +10,7 @@ import { Client } from "../guts/Client";
  * @param version to delete (if provided).
  * @returns the version id (if returned) of the item deleted.
  */
-export async function headObject<T extends Function>(id: string, bucket: T | string, version?: string): Promise<boolean> {
+export async function existsObject<T extends Function>(id: string, bucket: T | string, version?: string): Promise<boolean> {
   const input: HeadObjectCommandInput = {
     Bucket: BucketRegistry.getBucketName(bucket),
     Key: id,
