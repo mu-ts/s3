@@ -1,6 +1,6 @@
-import { IDGenerator } from '../model/IDGenerator';
-import { UUIDV5 } from '../model/UUIDV5';
 import { v5, v4 } from 'uuid';
+import { IDGenerator } from './model/IDGenerator';
+import { UUIDV5 } from './model/UUIDV5';
 
 export class ID {
   private constructor() {
@@ -20,7 +20,7 @@ export class ID {
        * First argument is the seed, second argument is the namespace.
        */
       return v5(
-        instance[strategy.getSeedAttribute()],
+        instance[attribute],
         strategy.getNamespace() || bucket
       );
     }

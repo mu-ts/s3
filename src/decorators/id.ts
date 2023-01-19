@@ -1,6 +1,6 @@
 import { BucketRegistry } from '../guts/BucketRegistry';
-import { IDGenerator } from '../model/IDGenerator';
-import { UUIDV5 } from '../model/UUIDV5';
+import { IDGenerator } from '../guts/model/IDGenerator';
+import { UUIDV5 } from '../guts/model/UUIDV5';
 
 /**
  * Only a single attribute can be documented as the id for the object.

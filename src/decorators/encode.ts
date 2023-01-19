@@ -8,7 +8,7 @@ import { BucketRegistry } from '../guts/BucketRegistry';
  */
 export function encode(encoding?: BufferEncoding): any {
   return (target: any, propertyKey: string, descriptor: PropertyDescriptor): PropertyDescriptor => {
-    BucketRegistry.setAttributes(target, propertyKey, { encoded: true, encodingAlgorithm: encoding});
+    BucketRegistry.setAttributes(target, propertyKey, { encoded: true, encoding: encoding});
     return descriptor;
   };
 }

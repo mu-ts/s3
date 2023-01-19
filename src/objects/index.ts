@@ -5,3 +5,5 @@ export * from './headObject';
 export * from './listObjects';
 export * from './listVersions';
 export * from './putObject';
+
+export * from '../guts/model/IDGenerator';

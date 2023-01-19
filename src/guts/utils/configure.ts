@@ -23,8 +23,6 @@ export const setBucket = (name: string) => {
   bucketName = name;
 }
 
-
-
 /**
  * 
  * @param request to set the 'default' bucket onto.

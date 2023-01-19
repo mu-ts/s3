@@ -6,80 +6,84 @@ import { UUIDV5 } from './model/UUIDV5';
 
 type RegistryValue = string | IDGenerator | UUIDV5 | AttributeConfiguration | Constructor;
 
+interface ClazzRegistry {
+  constructor?: Constructor;
+  bucketName: string;
+  idAttribute: string;
+  idStrategy: string | IDGenerator | UUIDV5;
+  attributes: Record<string, AttributeConfiguration>;
+}
+
 export class BucketRegistry {
   private static _instance: BucketRegistry;
 
-  private readonly ledger: Record<string, Record<string, RegistryValue>>;
+  private readonly ledger: Record<string, ClazzRegistry>;
 
   private constructor() {
     this.ledger = {};
+  }
+
+  public static register(clazz: Function, bucket: string): void {
+    const registry: ClazzRegistry = this.registry(clazz);
+    registry.bucketName = bucket;
+    registry.constructor = clazz.constructor as Constructor;
+  }
+
+  public static getClazz(bucketName: string): Constructor | undefined {
+    const clazz: string | undefined = Object.keys(this.instance().ledger).find((key: string) => this.instance().ledger[key].bucketName === bucketName );
+    if (!clazz) return undefined;
+    const registry: ClazzRegistry = this.instance().ledger[clazz];
+    return registry.constructor!;
+  }
+
+  public static getBucketName(clazz: Function | string): string {
+    if (typeof clazz === 'string') return clazz;
+    const registry: ClazzRegistry = this.registry(clazz);
+    return registry.bucketName;
+  }
+
+  public static setAttributes(clazz: Function, attributeName: string, values: AttributeConfiguration): void {
+    const registry: ClazzRegistry = this.registry(clazz);
+    const attribute: AttributeConfiguration = registry.attributes[attributeName] || {};
+    registry.attributes[attributeName] = { ...attribute, ...values };
+  }
+
+  public static getAttributes(clazz: Function, attributeName: string): AttributeConfiguration {
+    const registry: ClazzRegistry = this.registry(clazz);
+    const attribute: AttributeConfiguration = registry.attributes[attributeName] || {};
+    return attribute;
+  }
+
+  public static setId(clazz: Function, attributeName: string, config: string | IDGenerator | UUIDV5) {
+    const registry: ClazzRegistry = this.registry(clazz);
+    registry.idAttribute = attributeName;
+    registry.idStrategy = config;
+  }
+
+  public static getId(clazz: Function): { attribute: string, strategy?: string | IDGenerator | UUIDV5 } {
+    const registry: ClazzRegistry = this.registry(clazz);
+    const { idAttribute , idStrategy } = registry;
+    return {
+      attribute: idAttribute,
+      strategy: idStrategy,
+    }
+  }
+
+  private static registry(clazz: Function | Constructor): ClazzRegistry {
+    const name: string = clazz.name || clazz.constructor.name;
+    if (!this.instance().ledger[name]) this.instance().ledger[name] = {
+      bucketName: name, 
+      attributes: {}, 
+      idAttribute: 'id', 
+      idStrategy: 'uuid'
+    } as ClazzRegistry;
+    return this.instance().ledger[name];
   }
 
   private static instance() {
     if (this._instance) return this._instance;
     this._instance = new BucketRegistry();
     return this._instance;
-  }
-
-  public static register(clazz: Function, bucket: string): void {
-    this.instance().ledger[clazz.constructor.name] = { bucket, constructor: clazz.constructor as Constructor };
-  }
-
-  public static getConstructor(clazz: Function | string): Constructor {
-    const constructor: Constructor = this.get(clazz, 'constructor') as Constructor;
-    return constructor;
-  }
-
-  public static setBucketName(clazz: Function, value: RegistryValue): void {
-    this.set(clazz, 'bucket', value);
-  }
-
-  public static getBucketName(clazz: Function | string): string {
-    const bucketName: string | undefined = this.get(clazz, 'bucket') as string;
-    if (!bucketName) throw new Error('No bucket name found for class.');
-    return bucketName;
-  }
-
-  public static setAttributes(clazz: Function | string, attributeName: string, values: AttributeConfiguration): void {
-    let configuration: AttributeConfiguration = this.get(clazz, attributeName) as AttributeConfiguration;
-    if (!configuration) configuration = {};
-    configuration = { ...configuration, ...values };
-    this.set(clazz, attributeName, configuration);
-  }
-
-  public static getAttributes(clazz: Function | string, attributeName: string): AttributeConfiguration {
-    let configuration: AttributeConfiguration = this.get(clazz, attributeName) as AttributeConfiguration;
-    if (!configuration) configuration = {};
-    return configuration;
-  }
-
-  public static setId(clazz: Function | string, attributeName: string, config: string | IDGenerator | UUIDV5) {
-    this.set(clazz, 'id', attributeName);
-    this.set(clazz, 'id-generator', config);
-  }
-
-  public static getId(clazz: Function | string): { attribute: string, strategy?: string | IDGenerator | UUIDV5 } {
-    return {
-      attribute: this.get(clazz, 'id') as string,
-      strategy: this.get(clazz, 'id-generator') as string | IDGenerator | UUIDV5,
-    }
-  }
-
-  private static set(clazz: Function | string, name: string, value: RegistryValue): void {
-    if (!this.instance().ledger[clazz.constructor.name]) this.instance().ledger[clazz.constructor.name] = {};
-    this.instance().ledger[clazz.constructor.name][name] = value;
-  }
-
-  private static get(clazz: Function | string, name: string): RegistryValue | undefined {
-    if (typeof clazz === 'string') {
-      const bucket: string | undefined = Object.keys(this.instance().ledger).find((key:string) => {
-        return this.instance().ledger[key].bucket === clazz;
-      });
-      if (bucket) return this.instance().ledger[bucket][name];
-      return undefined;
-    } else {
-      return this.instance().ledger[clazz.constructor.name][name];
-    }
   }
 }
 

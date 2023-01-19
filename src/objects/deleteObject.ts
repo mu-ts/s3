@@ -9,12 +9,14 @@ import { Client } from "../guts/Client";
  * @param version to delete (if provided).
  * @returns the version id (if returned) of the item deleted.
  */
-export async function deleteObject(id: string, bucket: Function | 'string', version?: string): Promise<string | undefined> {
+export async function deleteObject(id: string, bucket: Function | string, version?: string): Promise<string | undefined> {
   const input: DeleteObjectCommandInput = {
     Bucket: BucketRegistry.getBucketName(bucket),
     Key: id,
     VersionId: version,
   }
+
+  console.log("instance", Client.instance());
 
   const results: DeleteObjectCommandOutput = await Client.instance().send(new DeleteObjectCommand(input));
 

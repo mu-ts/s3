@@ -5,11 +5,7 @@
  * @param namespace value to use (static value not attribute), if not provided then the bucket name is used.
  */
 export class UUIDV5 {
-  constructor(private seedAttribute: string, private namespace?: string) {
-  }
-
-  public getSeedAttribute(): string {
-    return this.seedAttribute;
+  constructor(private namespace?: string) {
   }
 
   public getNamespace(): string | undefined {

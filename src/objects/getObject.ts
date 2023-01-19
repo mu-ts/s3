@@ -2,7 +2,6 @@ import { GetObjectCommand, GetObjectCommandInput, GetObjectCommandOutput  } from
 import { Readable } from "stream";
 import { BucketRegistry } from "../guts/BucketRegistry";
 import { Client } from "../guts/Client";
-import { Tagged } from "../guts/Tagged";
 import { Constructor } from "../guts/model/Constructor";
 import { AttributeConfiguration } from "../guts/model/AttributeConfiguration";
 
@@ -13,14 +12,18 @@ import { AttributeConfiguration } from "../guts/model/AttributeConfiguration";
  * @param version to delete (if provided).
  * @returns the version id (if returned) of the item deleted.
  */
-export async function getObject<T extends Function>(id: string, bucket: T | string, version?: string): Promise<T | undefined> {
+export async function getObject<T extends Function>(id: string, _clazz: Constructor | string, version?: string): Promise<T | undefined> {
+  const clazz: Constructor | undefined = typeof _clazz === 'string' ? BucketRegistry.getClazz(_clazz) : _clazz;
+  const bucketName: string = BucketRegistry.getBucketName(_clazz);
+
   const input: GetObjectCommandInput = {
-    Bucket: BucketRegistry.getBucketName(bucket),
+    Bucket: bucketName,
     Key: id,
     VersionId: version,
   }
 
   try {
+
     const result: GetObjectCommandOutput = await Client.instance().send(new GetObjectCommand(input));
 
     if (!result.Body) return undefined;
@@ -28,9 +31,7 @@ export async function getObject<T extends Function>(id: string, bucket: T | stri
     const buffers = [];
 
     // node.js readable streams implement the async iterator protocol
-    for await (const data of result.Body as Readable) {
-      buffers.push(data);
-    }
+    for await (const data of result.Body as Readable) buffers.push(data);
 
     /**
      * Go through the metadata returned, if any of the keys match a configured attribute
@@ -51,9 +52,9 @@ export async function getObject<T extends Function>(id: string, bucket: T | stri
      * Constructing an instance of the underlying class will ensure that the
      * association to the bucket does not get lost.
      */
-    const object: any = Client.instance().getSerializer().deserialize(Buffer.concat(buffers), bucket);
-    const constructor: Constructor = BucketRegistry.getConstructor(bucket);
-    const instance: T = new constructor();
+    
+    const object: any = Client.instance().getSerializer().deserialize(Buffer.concat(buffers), clazz);
+    const instance: T = clazz ? new clazz() : {};
 
     return { ...instance, ...object, ...tags };
 
