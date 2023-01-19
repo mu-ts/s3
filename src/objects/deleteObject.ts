@@ -16,8 +16,6 @@ export async function deleteObject(id: string, bucket: Function | string, versio
     VersionId: version,
   }
 
-  console.log("instance", Client.instance());
-
   const results: DeleteObjectCommandOutput = await Client.instance().send(new DeleteObjectCommand(input));
 
   return results.VersionId;
