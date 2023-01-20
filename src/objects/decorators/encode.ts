@@ -1,4 +1,4 @@
-import { BucketRegistry } from '../guts/BucketRegistry';
+import { BucketRegistry } from '../../guts/BucketRegistry';
 
 /**
  * Encodes a value while it is being serialized.

@@ -1,6 +1,7 @@
 import { Cipher, createCipheriv, Decipher, createDecipheriv, randomBytes } from 'crypto';
 import { BucketRegistry } from './BucketRegistry';
 import { AttributeConfiguration } from './model/AttributeConfiguration';
+import { Constructor } from './model/Constructor';
 
 /**
  * Serializer that pays attention to the annotations provided to marshall the object

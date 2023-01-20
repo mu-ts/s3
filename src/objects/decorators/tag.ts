@@ -1,4 +1,4 @@
-import { BucketRegistry } from '../guts/BucketRegistry';
+import { BucketRegistry } from '../../guts/BucketRegistry';
 
 /**
  * When an attribute is tagged, it becomes an metadata value and is not

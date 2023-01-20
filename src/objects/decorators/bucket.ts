@@ -1,4 +1,4 @@
-import { BucketRegistry } from '../guts/BucketRegistry';
+import { BucketRegistry } from '../../guts/BucketRegistry';
 
 /**
  * Used to mark a class to store its instances in a specific bucket.

@@ -37,10 +37,10 @@ export async function getObject<T extends Function>(id: string, _clazz: Construc
      * Go through the metadata returned, if any of the keys match a configured attribute
      * that is set as a tag, then grab it so it can be put back on the object.
      */
-    const tags: Record<string, string> = result.Metadata ? 
+    const tags: Record<string, string> = result.Metadata && clazz ? 
       Object.keys(result.Metadata)
         .filter((key:string) => result.Metadata![key] !== undefined)
-        .map((key:string) => ({key, config: BucketRegistry.getAttributes(bucket, key)}))
+        .map((key:string) => ({key, config: BucketRegistry.getAttributes(clazz, key)}))
         .filter(({ config }: {key: string, config?: AttributeConfiguration}) => config !== undefined && config.tag)
         .reduce((accumulator: Record<string, string>, { key }: { key: string }) => {
           accumulator[key] = result.Metadata![key];

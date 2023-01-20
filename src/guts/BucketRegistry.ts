@@ -2,10 +2,6 @@ import { AttributeConfiguration } from './model/AttributeConfiguration';
 import { Constructor } from './model/Constructor';
 import { IDGenerator } from './model/IDGenerator';
 import { UUIDV5 } from './model/UUIDV5';
-
-
-type RegistryValue = string | IDGenerator | UUIDV5 | AttributeConfiguration | Constructor;
-
 interface ClazzRegistry {
   constructor?: Constructor;
   bucketName: string;

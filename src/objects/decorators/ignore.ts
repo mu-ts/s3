@@ -1,4 +1,4 @@
-import { BucketRegistry } from '../guts/BucketRegistry';
+import { BucketRegistry } from '../../guts/BucketRegistry';
 
 /**
  * An attribute marked as ignored will not be persisted at all.

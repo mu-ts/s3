@@ -1,4 +1,4 @@
-import { BucketRegistry } from '../guts/BucketRegistry';
+import { BucketRegistry } from '../../guts/BucketRegistry';
 
 /**
  * Marks an attribute to have ist value encrypted. Encryption happens before

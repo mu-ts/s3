@@ -1,4 +1,3 @@
-export interface Constructor {
+export interface Constructor extends Function {
   new(): any;
-  name: string;
 }

@@ -5,6 +5,7 @@ import { Client } from "../guts/Client";
 import { Diacritics } from "../guts/Diacritics";
 import { ID } from "../guts/ID";
 import { MD5 } from "../guts/MD5";
+import { Constructor } from "../guts/model/Constructor";
 import { Tagged } from "../guts/Tagged";
 
 /**
@@ -14,10 +15,10 @@ import { Tagged } from "../guts/Tagged";
  * @param version to delete (if provided).
  * @returns the version id (if returned) of the item deleted.
  */
-export async function putObject<T extends object>(object: T): Promise<T> {
+export async function putObject<T extends object>(object: T, _clazz?: Constructor | string): Promise<T> {
   
-  const clazz: Function = object.constructor;
-  const bucketName: string = BucketRegistry.getBucketName(clazz);
+  const clazz: Function = (typeof _clazz !== 'string' ? _clazz : undefined) || object.constructor;
+  const bucketName: string = BucketRegistry.getBucketName(_clazz || object.constructor);
   const { attribute, strategy } = BucketRegistry.getId(clazz);
   const id: string = ID.generate(bucketName, object, attribute, strategy ).toString();
 
