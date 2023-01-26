@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import { suite, test } from '@testdeck/mocha';
 
-import { ignore } from '../../src/decorators/ignore';
+import { ignore } from '../../src/objects/decorators/ignore';
 import { BucketRegistry } from '../../src/guts/BucketRegistry';
 import { AttributeConfiguration } from '../../src/guts/model/AttributeConfiguration';
 

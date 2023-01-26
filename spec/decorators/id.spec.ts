@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import { suite, test } from '@testdeck/mocha';
 
-import { id } from '../../src/decorators/id';
+import { id } from '../../src/objects/decorators/id';
 import { BucketRegistry } from '../../src/guts/BucketRegistry';
 import { UUIDV5 } from '../../src/guts/model/UUIDV5';
 import { IDGenerator } from '../../src/guts/model/IDGenerator';

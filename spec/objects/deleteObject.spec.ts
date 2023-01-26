@@ -1,11 +1,12 @@
 import { expect } from 'chai';
 import { suite, test } from '@testdeck/mocha';
 
-import { bucket } from '../../src/decorators/bucket';
+import { DeleteObjectCommandOutput } from '@aws-sdk/client-s3';
+
+import { bucket } from '../../src/objects/decorators/bucket';
 import { deleteObject } from '../../src/objects/deleteObject';
 import { Client } from '../../src/guts/Client';
 import { MockClient } from '../mock/MockClient';
-import { DeleteObjectCommandOutput } from '@aws-sdk/client-s3';
 
 @suite
 export class DeleteObjectSpec {

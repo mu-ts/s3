@@ -1,8 +1,8 @@
 import { expect } from 'chai';
 import { suite, test } from '@testdeck/mocha';
 
-import { encode } from '../../src/decorators/encode';
-import { bucket } from '../../src/decorators/bucket';
+import { encode } from '../../src/objects/decorators/encode';
+import { bucket } from '../../src/objects/decorators/bucket';
 import { BucketRegistry } from '../../src/guts/BucketRegistry';
 import { AttributeConfiguration } from '../../src/guts/model/AttributeConfiguration';
 
