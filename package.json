@@ -1,17 +1,18 @@
 {
   "name": "@mu-ts/s3",
-  "version": "0.1.0",
-  "description": "Easier interaction with S3.",
+  "version": "1.0.0",
+  "description": "Simple functional wrapper around S3 SDK to make most S3 interactions a single function call.",
   "main": "./lib/index",
   "types": "./lib/index",
   "author": "matt.filion@gmail.com",
   "homepage": "https://github.com/mu-ts/s3#readme",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
   "scripts": {
     "build": "tsc -p .",
-    "test": "nyc mocha -r ts-node/register spec/**/*.spec.ts",
-    "coverage": "nyc report --reporter text-summary",
-    "coverage-export": "nyc report --reporter=lcov > coverage.lcov",
-    "lint": "tslint -p .",
+    "test": "mocha -r ts-node/register spec/**/*.spec.ts",
     "clean": "rm -rf coverage lib .nyc_output"
   },
   "files": [
@@ -27,10 +28,7 @@
   "keywords": [
     "mu-ts",
     "S3",
-    "DB",
-    "AWS",
-    "S3DB",
-    "S3-DB"
+    "AWS"
   ],
   "licenses": [
     {
@@ -41,44 +39,23 @@
   "bugs": {
     "url": "https://github.com/mu-ts/logger/issues"
   },
-  "devDependencies": {
-    "@types/chai": "^4.2.9",
-    "@types/mocha": "^7.0.1",
-    "@types/node": "^11.15.7",
-    "@types/sinon": "^7.5.2",
-    "@types/uuid": "^3.4.7",
-    "aws-sdk": "^2.814.0",
-    "chai": "^4.2.0",
-    "codecov": "^3.8.3",
-    "mocha": "^10.2.0",
-    "nyc": "^14.1.1",
-    "sinon": "^9.0.0",
-    "source-map-support": "^0.5.16",
-    "ts-mocha": "^6.0.0",
-    "ts-node": "^8.3.0",
-    "tslint": "^5.18.0",
-    "tslint-eslint-rules": "^5.4.0",
-    "typescript": "^3.5.3"
-  },
   "dependencies": {
-    "@mu-ts/configurations": "^2.0.1",
-    "@mu-ts/logger": "^3.0.6",
-    "uuid": "^3.4.0"
+    "@aws-sdk/client-s3": "^3.252.0",
+    "uuid": "^8.3.2"
   },
-  "nyc": {
-    "include": [
-      "src/*.ts",
-      "src/**/*.ts"
-    ],
-    "extension": [
-      ".ts"
-    ],
-    "require": [
-      "ts-node/register",
-      "source-map-support/register"
-    ],
-    "sourceMap": true,
-    "instrument": true,
-    "all": true
-  }
+  "devDependencies": {
+    "@testdeck/mocha": "^0.3.3",
+    "@tsconfig/node18": "^1.0.1",
+    "@types/chai": "^4.3.4",
+    "@types/node": "^18.11.18",
+    "@types/uuid": "^9.0.0",
+    "chai": "^4.3.7",
+    "mocha": "^10.2.0",
+    "ts-node": "^10.9.1",
+    "typescript": "^4.9.4"
+  },
+  "directories": {
+    "lib": "lib"
+  },
+  "license": "ISC"
 }

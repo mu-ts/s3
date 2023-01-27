@@ -1,20 +1,14 @@
 /* Reference: https://www.typescriptlang.org/docs/handbook/compiler-options.html */
 {
+  "extends": "@tsconfig/node18/tsconfig.json",
   "compilerOptions": {
     "experimentalDecorators": true,
+    "forceConsistentCasingInFileNames": true,
     "declaration": true,
-    "noImplicitAny": true,
-    "noImplicitReturns": true,
-    "noImplicitThis": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "lib": ["ES2016"],
-    "target": "ES2016",
-    "module": "commonjs",
+
     "rootDir": "./src",
     "outDir": "./lib",
-    "types": ["node"]
   },
-  "exclude": ["node_modules", "*.spec/**/*.spec.ts"],
-  "include": ["src/**/*"]
+  "include": ["./src/**/*"],
+  "exclude": ["node_modules", "**/*.spec.ts"]
 }

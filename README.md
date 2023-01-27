@@ -1,108 +1,167 @@
-# s3
+# Objective
 
-Easier interaction with S3.
+Nice sugarry layer over top of S3 to make utilizing it psuedo database-like a bit easier. Uses @aws-sdk library which is more moduarlized so your deploy sizes should be smaller.
 
-Carry over from https://github.com/matt-filion/s3-db
+# Class Decoration
 
-# Proposal
-
-Stateless implementation, so less concern about 'collections' and documents focus on simplifying interaction with S3.
-Typed exceptions for easier error handling.
-Happy defaults to reduce necessary configuration. Including entityt names, just take it from the object.
-
-## Defaults
-
-* ROOT_NAME = 'mu-ts-s3' // Used for logging, and bucket naming and adding context where multiple instances may be present.
-* REGION = AWS_REGION | REGION | 'us-est-1'
-* BUCKET_PREFIX = () => `${await configurations.get('STAGE').${await configurations.get('REGION')}.${await configurations.get('ROOT_NAME')}-{{RESOURCE_NAME}}`;
-* RETRIES = 3
-* PAGE_SIZE = 100
-* SERIALIZER = () => JSON.stringify
-* DESERIALIZER = () => JSON.parse
-* UUID = 'v4'
-* AWSKMS = AES256 // If not AES256 the KMS key to use to use when interacting with S3.
-
-### APIS
-
-#### CONFIGURATION/DEFAULTS
-* `configure({ ... })` to configure the S3 singleton defaults, like page size, bucket name or region.
-* `update( @mu-ts/configurations )` to look for configuration values
-
-#### RAW ACTIONS
-* `list( prefix?, from, continuationToken )` to return a list of objects in the type defined.
-* `put( document, overwrite=true )` put a document, optionally dont allow overwritting of an existing document. If overwrite is false use `.exists` and if id on doc already exists throw error.
-* `get(id, from)` to load a document and have it transformed into the target type.
-* `remove( id, from )` delets a document if it exists.
-* `head( id, from )` returns the head object for the document.
-* `copy( key, from, to )` copies a document into the destination bucket.
-* `select( id, sql, from, as?)` returns the data from the document, per the selectObjectContent behavior of S3.
-
-#### SUGAR
-* `modify( id, from, {changesToApply} )` make sure object exists, load it, apply changes, check eTag/MD5 when saving, if collission, re-try. Continue until re-tries exceeded.
-* `move( id, from, destination )` moves a document (including origin delete) to the destination bucket.
-* `exists( id, from, md5/etag? )` returns true if a head object is found. Wonder if providing etag or md5 as optional secondary attributes will be helpful in making sure the specific content is in place. Maybe supporting object versions as well.
-* `mark()` Marks an objects current state as the rollback point.
-* `rollback()` Rolls an object back to its most recent marker. Lazy transaction stuff.
-
-#### MODIFIERS
-* `.safe` hint to prefix calls, that will cause exceptions to be thrown that would otherwise be swallowed like a document not existing. `const user:User = await S3DB.safe.get( 'docID', User )`
-* `.retries(4)` attempt the operation the specified number of times until success, and throw the last encountered failure if not. Will analyze the response of the errors returned from S3 and only retry when a retry is permitted.
-* `.timeout( ms )` how long to give the operation before timing out.
-* `.transaction` to executed the chained commands together as a single operation, and rollback on failure of any item.
-* `.pipe` or `.stream` to create read/write or duplex streams for piping operations.
-
-#### DECORATORS
-* `@key( idGenerator? )` annotate a classes id attribute as the object key. Current s3 implementation is bugged with this.
-* `@collection( { configuration })` annotate a class to configure it for a specific bucket.
-* `@tag()` Persist as a tag, not within the object body.
-* `@ignore()` Do not save this data to S3 in any form.
-* `@hash(algorithm?: string = 'sha256')` will hash the value before persisting it.
-* `@encrypt(key: string | Promise<string>)` encrypts a value using the secret provided.
-
-## Exceptions
-
-* NotFound(bucket, id) - Document doesnt exist.
-* ConccurrentModification( bucket, id, eTag, md5) - The document was changed while it was being modified.
-  
-## Experiments
-
-### Clean get operations.
+In orderto do all the neat behaviors around an objet, we need a class to associate the configurations with.
 
 ```
-import { get, safe } from '@mu-ts/s3';
-const user: User | undefined = get( id );
-const user: User = safe.get(id); // Throws error if doesnt exist.
-```
-
-### Class decoration.
-```
-@s3bucket({
-  prefix: 'users', // Added before all ids, even when generated.
-  bucket: 'postfix or ARN', // If not in ARN prefix, assume its just a postfix and use the default bucket pattern.
-  
-})
-@s3prefix('prefix') //Does it make to have more individual decorators?
+@bucket(process.env.BUCKET_NAME)
 class User {
-  @s3key( (user:User, uuid:string) => uuid )
-  id: string;
+  @id('uuid')
+  public id: string;
+
+  public name: string;
   
+  @encoded('base64')
+  @encrypted('my-secret')
+  public address: string;
+
+  @tag()
+  public group: string;
+
+  @redacted()
+  public hashId: string;
 }
 ```
 
-### Modify
+* @bucket() associates all instances of the class to the named bucket.
+* @id(type) describes the single field that can be used for the ID, and how to generate the ID if none is provided. `uuid` for uuid v4 generation. An instance of UUIDV5('namespace-value') to use uuid v5, with the associated attribute as the seed for the key. Or, define a function that will be given the object, and output a string as the ID.
+* @encrypt(secret) to have this field encrypted before it is persisted. Encoding happens after encryption if both are on the same field.
+* @encoded(type) to have this field encoded before it is persisted. Encoding happens after encryption if both are on the same field.
+* @tag() to remove this attribute from the body of the document and store as metadata instead.
+* @redacted to never persist this value, in tags nor the serialized body.
 
-So apply updates to the stored document, and provide a function to modify the number of attempts (to override defaults.)
+## Behaviors
+
+These are the commands you can use for interacting with an S3 bucket on a decorated object.
+
+### putObject(object, Class?)
+
+You can exclude the class if the object being persisted was created from a class.
 
 ```
-import { modify, retries } from '@mu-ts/s3';
-const update: any = { name: 'tuesday', dayOfWeek: 'Jebidiah' };
-const user: User = modify(id, update);
+import { putObject } from '@mu-ts/s3';
 
-// Multiple Updates to Apply
-const update: any = { name: 'tuesday', dayOfWeek: 'Jebidiah' };
-const updateTwo: any = { sex:'none', age: 9123 };
-const updateFunction: (original:User, updatedUser:User) => { do things };
-
-const user: User = retries(4).modify(id, update, updateTwo, updateFunction);
+let user: User = new User();
+user = await putObject(user);
 ```
 
+If you created your object dreclty in JSON you will need to define the class used to persist.
+
+```
+import { putObject } from '@mu-ts/s3';
+
+let user: User = { ... };
+user = await putObject(user, User);
+```
+
+### getObject(id, Class, version?)
+
+Load an object from S3 as an object.
+
+```
+import { getObject } from '@mu-ts/s3';
+
+const user: User | undefined = await getObject(user, User);
+```
+
+If you want to return a specific version, you can specify that as well.
+
+```
+import { getObject } from '@mu-ts/s3';
+
+const versionId: string = '...';
+const user: User | undefined = await getObject(user, User, versionId);
+```
+
+### deleteObject(id, Class, version?)
+
+
+Delete an object from S3. If a specific version is deleted (versioning enabled on bucket), then it is returned, undefined is returned otherwise.
+
+```
+import { deleteObject } from '@mu-ts/s3';
+
+const versionId: string | undefined = await deleteObject(user, User);
+```
+
+If you want to delete a specific version, you can specify that as well.
+
+```
+import { getObject } from '@mu-ts/s3';
+
+const versionId: string = '...';
+const user: User | undefined = await deleteObject(user, User, versionId);
+```
+
+### headObject(id, Class, version?)
+
+Load the metadata for an object, or get undefined if nothing is found.
+
+```
+import { headObject } from '@mu-ts/s3';
+
+const metadata: Record<string, string> | undefined = await headObject(user, User);
+```
+
+Load the metadata for an object at a specific version, or get undefined if nothing is found.
+
+```
+import { getObject } from '@mu-ts/s3';
+
+const versionId: string = '...';
+const metadata: Record<string, string> | undefined = await headObject(user, User, versionId);
+```
+
+### existsObject(id, Class, version?)
+
+Get a boolean value for if an object exists. Uses headObject under the covers since its lighter weight than loading the whole object.
+
+```
+import { headObject } from '@mu-ts/s3';
+
+const exists: boolean = await existsObject(user, User);
+```
+
+Load the metadata for an object at a specific version, or get undefined if nothing is found.
+
+```
+import { getObject } from '@mu-ts/s3';
+
+const versionId: string = '...';
+const exists: boolean = await existsObject(user, User, versionId);
+```
+
+### listObjects(Class, prefix?, size?, continuationToken?)
+
+Return a list of object metadata (key, etag, size, etc) for a bucket.
+
+```
+import { listObjects, Objects, ObjectKey } from '@mu-ts/s3';
+
+const pageSize: number = 100;
+const results: Objects = await listObjects(User, undefined, pageSize);
+
+/**
+ * Continuation tokens are returned so pagination can continue.
+ */
+const continuationToken: string = results.getContinuationToken();
+const results: ObjectKey[] = results.getResults();
+
+const nextResults: Objects = await listObjects(User, undefined, pageSize, continuationToken);
+
+```
+
+## Stream
+
+This is not tested yet, but should work?
+
+```
+import { listObjectsStream } from '@mu-ts/s3';
+
+listObjectsStream(User, undefined, false).pipe(system.out);
+
+
+```
