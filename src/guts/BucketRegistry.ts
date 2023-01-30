@@ -21,17 +21,20 @@ export class BucketRegistry {
   }
 
   public static register(clazz: Function, bucket: string): void {
-    Logger.trace('register()', { clazz, bucket });
+    Logger.trace('register() -->', { clazz, bucket });
     const registry: ClazzRegistry = this.registry(clazz);
     registry.bucketName = bucket;
     registry.constructor = clazz.constructor as Constructor;
+    Logger.trace('register() <--', { registry });
   }
 
   public static getClazz(bucketName: string): Constructor | undefined {
     Logger.trace('getClazz()', { bucketName });
     const clazz: string | undefined = Object.keys(this.instance().ledger).find((key: string) => this.instance().ledger[key].bucketName === bucketName );
+    Logger.trace('getClazz()', { clazz });
     if (!clazz) return undefined;
     const registry: ClazzRegistry = this.instance().ledger[clazz];
+    Logger.trace('getClazz()', { registry });
     return registry.constructor!;
   }
 
@@ -73,14 +76,16 @@ export class BucketRegistry {
   }
 
   private static registry(clazz: Function | Constructor): ClazzRegistry {
-    Logger.trace('registry()', { clazz });
-    const name: string = clazz.name || clazz.constructor.name;
+    Logger.trace('registry() -->', { clazz });
+    let name: string = clazz.name || clazz.constructor.name;
+    if (name === 'Function') name = clazz.constructor.name;
     if (!this.instance().ledger[name]) this.instance().ledger[name] = {
       bucketName: name, 
       attributes: {}, 
       idAttribute: 'id', 
       idStrategy: 'uuid'
     } as ClazzRegistry;
+    Logger.trace('registry() <--', { [name]: this.instance().ledger[name] });
     return this.instance().ledger[name];
   }
 

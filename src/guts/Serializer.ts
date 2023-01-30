@@ -15,16 +15,15 @@ export class Serializer {
   }
 
   /**
-   *
-   * @param object to serialize.
-   * @param collection (optional) this object belongs to.
-   * @param document (optional) attached to this object.
+   * 
+   * @param object To be serialized
+   * @param clazz to use for serialization instructions.
+   * @returns 
    */
-  // @ts-ignore
-  public serialize<T>(object: object, clazz: Function): string {
+  public serialize<T>(object: object, clazz?: Function | string): string {
     const serialized: string = JSON.stringify(
       object,
-      (name: string, value: any) => {
+      clazz && typeof clazz !== 'string' ? (name: string, value: any) => {
         /* Filter out redacted fields. */
         const attributes: AttributeConfiguration = BucketRegistry.getAttributes(clazz, name);
 
@@ -53,7 +52,7 @@ export class Serializer {
         }
 
         return newValue;
-      },
+      } : undefined,
       undefined
     );
     return serialized;

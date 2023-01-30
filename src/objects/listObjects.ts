@@ -4,6 +4,7 @@ import { Client } from "../guts/Client";
 import { Objects } from "./model/Objects";
 import { ObjectKey } from "./model/ObjectKey";
 import { Logger } from "../utils/Logger";
+import { Constructor } from "../guts/model/Constructor";
 
 /**
  * Used to iterate over the contents of a bucket, or locate a series of documents that 
@@ -15,7 +16,7 @@ import { Logger } from "../utils/Logger";
  * @param continuationToken to resume to the next batch of objects.
  * @returns 
  */
-export async function listObjects<T extends Function>(bucket: T | string, prefix?: string, size?: number, continuationToken?: string): Promise<Objects | undefined> {
+export async function listObjects(bucket: Constructor, prefix?: string, size?: number, continuationToken?: string): Promise<Objects | undefined> {
   const pageSize: number = size || 100;
   const bucketName: string = BucketRegistry.getBucketName(bucket);
 

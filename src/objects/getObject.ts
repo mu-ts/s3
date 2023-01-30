@@ -13,9 +13,9 @@ import { Logger } from "../utils/Logger";
  * @param version to delete (if provided).
  * @returns the version id (if returned) of the item deleted.
  */
-export async function getObject<T extends Function>(id: string, _clazz: Constructor | string, version?: string): Promise<T | undefined> {
-  const clazz: Constructor | undefined = typeof _clazz === 'string' ? BucketRegistry.getClazz(_clazz) : _clazz;
+export async function getObject<T>(id: string, _clazz: Constructor, version?: string): Promise<T | undefined> {
   const bucketName: string = BucketRegistry.getBucketName(_clazz);
+  const clazz: Constructor | undefined = BucketRegistry.getClazz(bucketName);
 
   const input: GetObjectCommandInput = {
     Bucket: bucketName,

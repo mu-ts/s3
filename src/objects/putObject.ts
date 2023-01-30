@@ -16,29 +16,31 @@ import { Logger } from "../utils/Logger";
  * @param version to delete (if provided).
  * @returns the version id (if returned) of the item deleted.
  */
-export async function putObject<T extends object>(object: T, _clazz?: Constructor | string): Promise<T> {
-  
-  
-  const bucketName: string = BucketRegistry.getBucketName(_clazz || object.constructor);
-  const clazz: Function = (typeof _clazz !== 'string' ? _clazz : object.constructor);
-  const { attribute, strategy } = BucketRegistry.getId(clazz);
-  const id: string = ID.generate(bucketName, object, attribute, strategy ).toString();
+export async function putObject<T extends object>(object: T, clazz?: Constructor): Promise<T> {
 
-  /**
-   * Set the ID before persisting.
-   */
-  (object as any)[attribute] = id;
+  Logger.trace('putObject( -->', { object, clazz });
 
-  /**
-   * Serialize the object (which supports decoration of classes)
-   * before sending to S3.
-   */
+  const bucketName: string = BucketRegistry.getBucketName(clazz || object.constructor);
   const body: string = Client.instance().getSerializer().serialize(object, clazz);
-  const metadata: Record<string, string> = Tagged.tags(object, clazz) || {};
+
+  Logger.trace('putObject()', { bucketName, clazz });
+
+  let metadata: Record<string, string> = Tagged.tags(object, clazz || object.constructor) || {};
+
+  Logger.trace('putObject()', { metadata });
 
   metadata['mu-ts'] = 'true';
   metadata['Content-Length'] = `${body.length}`;
   metadata['MD5'] = Diacritics.remove(MD5.generate(body));
+
+  /**
+   * Set the ID before persisting.
+   */
+  const { attribute, strategy } = BucketRegistry.getId(clazz || object.constructor) || {};
+  const id: string = ID.generate(bucketName, object, attribute, strategy ).toString();
+  (object as any)[attribute] = id;
+
+  Logger.trace('putObject()', { attribute, strategy, id });
 
   const input: PutObjectCommandInput = {
     Bucket: BucketRegistry.getBucketName(object as Function),
@@ -54,7 +56,9 @@ export async function putObject<T extends object>(object: T, _clazz?: Constructo
    */
   await Client.instance().send(new PutObjectCommand(input));
   
-  Logger.trace('putObject()', 'output', { object });
+  Logger.trace('putObject() <--', 'output', { object });
 
   return object;
 }
+
+

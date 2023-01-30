@@ -1,6 +1,7 @@
 import { HeadObjectCommand, HeadObjectCommandInput, HeadObjectCommandOutput  } from "@aws-sdk/client-s3";
 import { BucketRegistry } from "../guts/BucketRegistry";
 import { Client } from "../guts/Client";
+import { Constructor } from "../guts/model/Constructor";
 import { Logger } from "../utils/Logger";
 
 /**
@@ -10,7 +11,7 @@ import { Logger } from "../utils/Logger";
  * @param version to delete (if provided).
  * @returns the version id (if returned) of the item deleted.
  */
-export async function headObject<T extends Function>(id: string, bucket: T | string, version?: string): Promise<Record<string, string> | undefined> {
+export async function headObject(id: string, bucket: Constructor, version?: string): Promise<Record<string, string> | undefined> {
   const input: HeadObjectCommandInput = {
     Bucket: BucketRegistry.getBucketName(bucket),
     Key: id,

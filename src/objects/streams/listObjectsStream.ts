@@ -4,11 +4,12 @@ import { BucketRegistry } from "../../guts/BucketRegistry";
 import { Objects } from "../model/Objects";
 import { ObjectKey } from "../model/ObjectKey";
 import { getObject } from "../getObject";
+import { Constructor } from "../../guts/model/Constructor";
 
 class ListObjectsStream<T> extends Readable {
   private continuationToken?: string;
 
-  constructor(private readonly bucket: string, private readonly prefix?: string, private readonly loadObjects?: boolean) {
+  constructor(private readonly bucket: Constructor, private readonly prefix?: string, private readonly loadObjects?: boolean) {
     super({objectMode: true});
   }
 
@@ -29,6 +30,6 @@ class ListObjectsStream<T> extends Readable {
   }
 }
 
-export function listObjectsStream<T extends Function>(bucket: T | string, prefix?: string, loadObjects?: boolean): ListObjectsStream<T> {
-  return new ListObjectsStream(BucketRegistry.getBucketName(bucket), prefix, loadObjects);  
+export function listObjectsStream<T extends Function>(bucket: Constructor, prefix?: string, loadObjects?: boolean): ListObjectsStream<T> {
+  return new ListObjectsStream(bucket, prefix, loadObjects);  
 }
