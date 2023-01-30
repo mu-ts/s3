@@ -43,7 +43,7 @@ export async function putObject<T extends object>(object: T, clazz?: Constructor
   Logger.trace('putObject()', { attribute, strategy, id });
 
   const input: PutObjectCommandInput = {
-    Bucket: BucketRegistry.getBucketName(object as Function),
+    Bucket: bucketName,
     Key: id,
     Body: body,
     Metadata: metadata
