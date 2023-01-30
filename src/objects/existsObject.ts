@@ -1,6 +1,7 @@
 import { HeadObjectCommand, HeadObjectCommandInput, HeadObjectCommandOutput  } from "@aws-sdk/client-s3";
 import { BucketRegistry } from "../guts/BucketRegistry";
 import { Client } from "../guts/Client";
+import { Logger } from "../utils/Logger";
 
 /**
  * Lightweight check to see if the object exists, without having to load the whole object.
@@ -17,7 +18,9 @@ export async function existsObject<T extends Function>(id: string, bucket: T | s
     VersionId: version,
   }
 
+  Logger.trace('existsObject()', 'input', { input });
   const result: HeadObjectCommandOutput | undefined = await Client.instance().send(new HeadObjectCommand(input));
+  Logger.trace('existsObject()', 'output', { result });
 
   if (!result) return false;
 

@@ -7,6 +7,7 @@ import { ID } from "../guts/ID";
 import { MD5 } from "../guts/MD5";
 import { Constructor } from "../guts/model/Constructor";
 import { Tagged } from "../guts/Tagged";
+import { Logger } from "../utils/Logger";
 
 /**
  * Retrieves an item from the bucket and serializes it into an object.
@@ -17,8 +18,9 @@ import { Tagged } from "../guts/Tagged";
  */
 export async function putObject<T extends object>(object: T, _clazz?: Constructor | string): Promise<T> {
   
-  const clazz: Function = (typeof _clazz !== 'string' ? _clazz : undefined) || object.constructor;
+  
   const bucketName: string = BucketRegistry.getBucketName(_clazz || object.constructor);
+  const clazz: Function = (typeof _clazz !== 'string' ? _clazz : object.constructor);
   const { attribute, strategy } = BucketRegistry.getId(clazz);
   const id: string = ID.generate(bucketName, object, attribute, strategy ).toString();
 
@@ -45,10 +47,14 @@ export async function putObject<T extends object>(object: T, _clazz?: Constructo
     Metadata: metadata
   }
 
+  Logger.trace('putObject()', 'input', { input });
+
   /**
    * No failure means success, for now.
    */
   await Client.instance().send(new PutObjectCommand(input));
+  
+  Logger.trace('putObject()', 'output', { object });
 
   return object;
 }

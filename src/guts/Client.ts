@@ -1,6 +1,7 @@
 import {
   S3Client, ServiceInputTypes, ServiceOutputTypes,  
 } from "@aws-sdk/client-s3";
+import { Logger } from "../utils/Logger";
 import { Serializer } from "./Serializer";
 
 export class Client {
@@ -16,7 +17,9 @@ export class Client {
   }
 
   public async send<Input extends ServiceInputTypes, Output extends ServiceOutputTypes>(command: Input): Promise<Output> {
+    Logger.trace('send()', 'input', { command });
     const response: Output = await this.client.send<Input, Output>(command as any);
+    Logger.trace('send()', 'response', { response });
     return response;
   }
 

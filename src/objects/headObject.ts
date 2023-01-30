@@ -1,6 +1,7 @@
 import { HeadObjectCommand, HeadObjectCommandInput, HeadObjectCommandOutput  } from "@aws-sdk/client-s3";
 import { BucketRegistry } from "../guts/BucketRegistry";
 import { Client } from "../guts/Client";
+import { Logger } from "../utils/Logger";
 
 /**
  * Retrieves an item from the bucket and serializes it into an object.
@@ -16,7 +17,11 @@ export async function headObject<T extends Function>(id: string, bucket: T | str
     VersionId: version,
   }
 
+  Logger.trace('headObject()', 'input', { input });
+
   const result: HeadObjectCommandOutput | undefined = await Client.instance().send(new HeadObjectCommand(input));
+
+  Logger.trace('headObject()', 'output', { result });
 
   if (!result) return undefined;
 

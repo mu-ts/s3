@@ -3,6 +3,7 @@ import { BucketRegistry } from "../guts/BucketRegistry";
 import { Client } from "../guts/Client";
 import { Objects } from "./model/Objects";
 import { ObjectKey } from "./model/ObjectKey";
+import { Logger } from "../utils/Logger";
 
 /**
  * Used to iterate over the contents of a bucket, or locate a series of documents that 
@@ -25,7 +26,11 @@ export async function listObjects<T extends Function>(bucket: T | string, prefix
     MaxKeys: pageSize,
   }
 
+  Logger.trace('listObjects()', 'input', { input });
+
   const output: ListObjectsV2CommandOutput | undefined = await Client.instance().send(new ListObjectsV2Command(input));
+  
+  Logger.trace('listObjects()', 'output', { output });
 
   if (!output || !output.Contents) return undefined;
 
