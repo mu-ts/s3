@@ -4,6 +4,7 @@ import { BucketRegistry } from "../guts/BucketRegistry";
 import { Client } from "../guts/Client";
 import { Constructor } from "../guts/model/Constructor";
 import { AttributeConfiguration } from "../guts/model/AttributeConfiguration";
+import { Logger } from "../utils/Logger";
 
 /**
  * Retrieves an item from the bucket and serializes it into an object.
@@ -12,9 +13,9 @@ import { AttributeConfiguration } from "../guts/model/AttributeConfiguration";
  * @param version to delete (if provided).
  * @returns the version id (if returned) of the item deleted.
  */
-export async function getObject<T extends Function>(id: string, _clazz: Constructor | string, version?: string): Promise<T | undefined> {
-  const clazz: Constructor | undefined = typeof _clazz === 'string' ? BucketRegistry.getClazz(_clazz) : _clazz;
+export async function getObject<T>(id: string, _clazz: Constructor, version?: string): Promise<T | undefined> {
   const bucketName: string = BucketRegistry.getBucketName(_clazz);
+  const clazz: Constructor | undefined = BucketRegistry.getClazz(bucketName);
 
   const input: GetObjectCommandInput = {
     Bucket: bucketName,
@@ -24,7 +25,11 @@ export async function getObject<T extends Function>(id: string, _clazz: Construc
 
   try {
 
+    Logger.trace('getObject()', 'input', { input });
+
     const result: GetObjectCommandOutput = await Client.instance().send(new GetObjectCommand(input));
+
+    Logger.trace('getObject()', 'result', { result });
 
     if (!result.Body) return undefined;
 
@@ -55,6 +60,8 @@ export async function getObject<T extends Function>(id: string, _clazz: Construc
     
     const object: any = Client.instance().getSerializer().deserialize(Buffer.concat(buffers), clazz);
     const instance: T = clazz ? new clazz() : {};
+
+    Logger.trace('getObject()', 'created object', { instance, object, tags });
 
     return { ...instance, ...object, ...tags };
 
