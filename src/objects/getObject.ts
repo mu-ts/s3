@@ -66,7 +66,9 @@ export async function getObject<T>(id: string, _clazz: Constructor, version?: st
     return { ...instance, ...object, ...tags };
 
   } catch(error: any) {
-    if (error.code === 'NoSuchKey') return undefined;
-    throw error;
+    Logger.trace('getObject() Error', { error });
+    if ([error.code, error.Code].includes('NoSuchKey')) return undefined;
+    const { Code, Key, RequestId } = error;
+    throw new Error(`${Code}: ${Key} [${RequestId}]`);
   }
 }

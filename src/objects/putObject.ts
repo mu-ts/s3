@@ -21,17 +21,12 @@ export async function putObject<T extends object>(object: T, clazz?: Constructor
   Logger.trace('putObject( -->', { object, clazz });
 
   const bucketName: string = BucketRegistry.getBucketName(clazz || object.constructor);
-  const body: string = Client.instance().getSerializer().serialize(object, clazz);
 
   Logger.trace('putObject()', { bucketName, clazz });
 
   let metadata: Record<string, string> = Tagged.tags(object, clazz || object.constructor) || {};
 
   Logger.trace('putObject()', { metadata });
-
-  metadata['mu-ts'] = 'true';
-  metadata['Content-Length'] = `${body.length}`;
-  metadata['MD5'] = Diacritics.remove(MD5.generate(body));
 
   /**
    * Set the ID before persisting.
@@ -41,6 +36,14 @@ export async function putObject<T extends object>(object: T, clazz?: Constructor
   (object as any)[attribute] = id;
 
   Logger.trace('putObject()', { attribute, strategy, id });
+
+  /**
+   * Do body serialization as the very last thing so that any above mutation is properly reflected.
+   */
+  const body: string = Client.instance().getSerializer().serialize(object, clazz);
+  metadata['Content-Length'] = `${body.length}`;
+  metadata['MD5'] = Diacritics.remove(MD5.generate(body));
+  metadata['mu-ts'] = 'true';
 
   const input: PutObjectCommandInput = {
     Bucket: bucketName,
