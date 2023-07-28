@@ -1,4 +1,11 @@
-import { HeadObjectCommand, HeadObjectCommandInput, HeadObjectCommandOutput  } from "@aws-sdk/client-s3";
+import {
+  HeadObjectCommand,
+  HeadObjectCommandInput,
+  HeadObjectCommandOutput,
+  NoSuchBucket,
+  NoSuchKey,
+  NotFound
+} from "@aws-sdk/client-s3";
 import { BucketRegistry } from "../guts/BucketRegistry";
 import { Client } from "../guts/Client";
 import { Constructor } from "../guts/model/Constructor";
@@ -19,11 +26,21 @@ export async function existsObject(id: string, bucket: Constructor, version?: st
     VersionId: version,
   }
 
-  Logger.trace('existsObject()', 'input', { input });
-  const result: HeadObjectCommandOutput | undefined = await Client.instance().send(new HeadObjectCommand(input));
-  Logger.trace('existsObject()', 'output', { result });
-
-  if (!result) return false;
-
-  return true;
+  try {
+    Logger.trace('existsObject()', 'input', { input });
+    const output: HeadObjectCommandOutput | undefined = await Client.instance().send(new HeadObjectCommand(input));
+    Logger.trace('existsObject()', 'output', { output });
+    return !!(output);
+  } catch (error: unknown) {
+    Logger.trace('existsObject()', 'Error', { error });
+    /*
+     * If the bucket does not exist, or you do not have permission to access it,
+     * the HEAD request returns a generic 400 Bad Request, 403 Forbidden or 404 Not Found code.
+     * A message body is not included, so you cannot determine the exception beyond these error codes.
+     */
+    if (error instanceof NotFound || error instanceof NoSuchBucket || error instanceof NoSuchKey) {
+      return false;
+    }
+    throw error;
+  }
 }
