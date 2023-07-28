@@ -3,8 +3,7 @@ import { suite, test } from '@testdeck/mocha';
 
 import { DeleteObjectCommandOutput } from '@aws-sdk/client-s3';
 
-import { bucket } from '../../src/objects/decorators/bucket';
-import { deleteObject } from '../../src/objects/deleteObject';
+import { bucket, deleteObject } from '../../src';
 import { Client } from '../../src/guts/Client';
 import { MockClient } from '../mock/MockClient';
 
@@ -14,6 +13,7 @@ export class DeleteObjectSpec {
   @test
   public async noVersionByBucket(): Promise<void> {
     Client.instance = () => new MockClient({ VersionId: undefined } as DeleteObjectCommandOutput) as any as Client;
+    // @ts-ignore
     const versionId: string | undefined = await deleteObject('id', 'some-buket');
     expect(versionId).to.be.undefined;
   }
@@ -21,6 +21,7 @@ export class DeleteObjectSpec {
   @test
   public async versionByBucket(): Promise<void> {
     Client.instance = () => new MockClient({ VersionId: 'version-1' } as DeleteObjectCommandOutput) as any as Client;
+    // @ts-ignore
     const versionId: string | undefined = await deleteObject('id', 'some-buket', 'version-1');
     expect(versionId).to.equal('version-1');
   }

@@ -6,6 +6,7 @@ export * from './listObjects';
 export * from './listVersions';
 export * from './putObject';
 
+export * from '../guts/model/Constructor';
 export * from '../guts/model/IDGenerator';
 export * from '../guts/model/UUIDV5';
 

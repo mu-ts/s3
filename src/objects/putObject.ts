@@ -17,16 +17,10 @@ import { Logger } from "../utils/Logger";
  * @returns the version id (if returned) of the item deleted.
  */
 export async function putObject<T extends object>(object: T, clazz?: Constructor): Promise<T> {
-
-  Logger.trace('putObject( -->', { object, clazz });
+  Logger.trace('putObject()', '-->', { object, clazz });
 
   const bucketName: string = BucketRegistry.getBucketName(clazz || object.constructor);
-
-  Logger.trace('putObject()', { bucketName, clazz });
-
-  let metadata: Record<string, string> = Tagged.tags(object, clazz || object.constructor) || {};
-
-  Logger.trace('putObject()', { metadata });
+  Logger.trace('putObject()', { bucketName });
 
   /**
    * Set the ID before persisting.
@@ -41,9 +35,12 @@ export async function putObject<T extends object>(object: T, clazz?: Constructor
    * Do body serialization as the very last thing so that any above mutation is properly reflected.
    */
   const body: string = Client.instance().getSerializer().serialize(object, clazz);
+
+  const metadata: Record<string, string> = Tagged.tags(object, clazz || object.constructor) || {};
   metadata['Content-Length'] = `${body.length}`;
   metadata['MD5'] = Diacritics.remove(MD5.generate(body));
   metadata['mu-ts'] = 'true';
+  Logger.trace('putObject()', { metadata });
 
   const input: PutObjectCommandInput = {
     Bucket: bucketName,
@@ -51,15 +48,14 @@ export async function putObject<T extends object>(object: T, clazz?: Constructor
     Body: body,
     Metadata: metadata
   }
-
-  Logger.trace('putObject()', 'input', { input });
+  Logger.trace('putObject()', 'input -->', { input });
 
   /**
    * No failure means success, for now.
    */
   await Client.instance().send(new PutObjectCommand(input));
   
-  Logger.trace('putObject() <--', 'output', { object });
+  Logger.trace('putObject()', '<-- output', { object });
 
   return object;
 }
