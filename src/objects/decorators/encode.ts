@@ -1,5 +1,3 @@
-import { BucketRegistry } from '../../guts/BucketRegistry';
-
 /**
  * Encodes a value while it is being serialized.
  * 
@@ -7,8 +5,14 @@ import { BucketRegistry } from '../../guts/BucketRegistry';
  * @returns 
  */
 export function encode(encoding?: BufferEncoding): any {
-  return (target: any, propertyKey: string, descriptor: PropertyDescriptor): PropertyDescriptor => {
-    BucketRegistry.setAttributes(target, propertyKey, { encoded: true, encoding: encoding});
-    return descriptor;
+  return function encodeDecorator(originalMethod: any, context: ClassFieldDecoratorContext): void {
+    context.addInitializer(function (): void {
+      const { name } = context;
+      const metadata = this.constructor['mu-ts'];
+      if (metadata) {
+        if (!metadata['encode']) metadata['encode'] = [];
+        metadata['encode'].push({name, encoding })
+      }
+    })
   };
 }

@@ -39,20 +39,23 @@
   "bugs": {
     "url": "https://github.com/mu-ts/logger/issues"
   },
+  "peerDependencies": {
+    "@aws-sdk/client-s3": "^3.427.0"
+  },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.379.1",
-    "uuid": "^9.0.0"
+    "@mu-ts/logger": "^3.2.0",
+    "uuid": "^9.0.1"
   },
   "devDependencies": {
-    "@testdeck/mocha": "^0.3.3",
-    "@tsconfig/node18": "^2.0.1",
-    "@types/chai": "^4.3.5",
-    "@types/node": "^20.4.5",
-    "@types/uuid": "^9.0.2",
-    "chai": "^4.3.7",
+    "@types/chai": "^4.3.7",
+    "@types/mocha": "^10.0.2",
+    "@types/node": "^20.8.4",
+    "@types/uuid": "^9.0.5",
+    "chai": "^4.3.10",
     "mocha": "^10.2.0",
+    "ts-mocha": "^10.0.0",
     "ts-node": "^10.9.1",
-    "typescript": "^5.1.6"
+    "typescript": "^5.2.2"
   },
   "directories": {
     "lib": "lib"

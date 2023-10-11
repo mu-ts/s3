@@ -1,13 +1,14 @@
-import { BucketRegistry } from '../../guts/BucketRegistry';
-
 /**
- * When an attribute is tagged, it becomes an metadata value and is not
- * serialized within the body of the saved object. There is a limit to the number of
- * tags so be careful about declaring to many.
+ * Marks an attribute as an S3, SQS or SNS attribute. meaning when the object is added, published
+ * or saved it will take any value decorated and push it to the 'metadata' equivalent.
  */
-export function tag(): any {
-  return (target: any, propertyKey: string, descriptor: PropertyDescriptor): PropertyDescriptor => {
-    BucketRegistry.setAttributes(target, propertyKey, { tag: true });
-    return descriptor;
-  };
-}
+export function tag(originalMethod: any, context: ClassFieldDecoratorContext): void {
+  context.addInitializer(function (): void {
+    const { name } = context;
+    const metadata = this.constructor['mu-ts'];
+    if (metadata) {
+      if (!metadata['tags']) metadata['tags'] = [];
+      metadata['tags'].push(name)
+    }
+  })
+};

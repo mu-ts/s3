@@ -1,11 +1,9 @@
 /* Reference: https://www.typescriptlang.org/docs/handbook/compiler-options.html */
 {
-  "extends": "@tsconfig/node18/tsconfig.json",
   "compilerOptions": {
-    "experimentalDecorators": true,
+    // Do not include 'experimental decorators' it breaks compilation.
     "forceConsistentCasingInFileNames": true,
     "declaration": true,
-
     "rootDir": "./src",
     "outDir": "./lib",
   },

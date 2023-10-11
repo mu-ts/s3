@@ -1,4 +1,3 @@
-import { BucketRegistry } from '../../guts/BucketRegistry';
 import { IDGenerator } from '../../guts/model/IDGenerator';
 import { UUIDV5 } from '../../guts/model/UUIDV5';
 
@@ -8,9 +7,13 @@ import { UUIDV5 } from '../../guts/model/UUIDV5';
  * @param generator function that implements IDGenerator or uuid (v4).
  * @returns 
  */
+
 export function id(generator: IDGenerator | 'uuid' | UUIDV5): any {
-  return (target: any, propertyKey: string, descriptor: PropertyDescriptor): PropertyDescriptor => {
-    BucketRegistry.setId(target, propertyKey, generator);
-    return descriptor;
+  return function idGenerator(originalMethod: any, context: ClassFieldDecoratorContext): void {
+    context.addInitializer(function (): void {
+      const { name } = context;
+      const metadata = this.constructor['mu-ts'];
+      if (metadata) metadata['id'] = { field: name, generator };
+    })
   };
-}
+};

@@ -1,11 +1,13 @@
-import { BucketRegistry } from '../../guts/BucketRegistry';
-
 /**
- * An attribute marked as ignored will not be persisted at all.
+ * An attribute marked as ignored will not be persisted.
  */
-export function ignore(): any {
-  return (target: any, propertyKey: string, descriptor: PropertyDescriptor): PropertyDescriptor => {
-    BucketRegistry.setAttributes(target, propertyKey, { ignored: true });
-    return descriptor;
-  };
-}
+export function ignore(originalMethod: any, context: ClassFieldDecoratorContext): void {
+  context.addInitializer(function (): void {
+    const { name } = context;
+    const metadata = this.constructor['mu-ts'];
+    if (metadata) {
+      if (!metadata['ignore']) metadata['ignore'] = [];
+      metadata['ignore'].push(name)
+    }
+  })
+};

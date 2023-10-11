@@ -1,42 +1,33 @@
 import { expect } from 'chai';
-import { suite, test } from '@testdeck/mocha';
+import { describe, it } from 'mocha';
 
 import { encode } from '../../src/objects/decorators/encode';
 import { bucket } from '../../src/objects/decorators/bucket';
-import { BucketRegistry } from '../../src/guts/BucketRegistry';
-import { AttributeConfiguration } from '../../src/guts/model/AttributeConfiguration';
 
-@suite
-export class EncodeSpec {
-  @test
-  public decorate(): void {
-    class EncodeUser{
-      @encode()
-      public test: string = '';
-    }
-    const attributes: AttributeConfiguration = BucketRegistry.getAttributes(EncodeUser, 'test');
-    expect(attributes).to.have.property('encoded').that.is.true;
-  }
 
-  @test
-  public decorateWithBucket(): void {
+describe('@encode', () => {
+  it('to decorate class with basic encode, with bucket', () => {
     @bucket('test-bucket')
     class EncodeUser{
       @encode()
       public test: string = '';
     }
-    const attributes: AttributeConfiguration = BucketRegistry.getAttributes(EncodeUser, 'test');
-    expect(attributes).to.have.property('encoded').that.is.true;
-  }
 
-  @test
-  public decorateBase64(): void {
+    const attributes: {name: string, encoding: string } = EncodeUser['mu-ts'].encode;
+
+    expect(attributes[0]).to.have.property('name').that.equals('test');
+  })
+
+  it('to decorate class with base64 and bucket', () => {
+    @bucket('test-bucket')
     class EncodeUser{
       @encode('base64')
       public test: string = '';
     }
-    const attributes: AttributeConfiguration = BucketRegistry.getAttributes(EncodeUser, 'test');
-    expect(attributes).to.have.property('encoded').that.is.true;
-    expect(attributes).to.have.property('encoding').to.equal('base64');
-  }
-}
+    
+    const attributes: {name: string, encoding: string } = EncodeUser['mu-ts'].encode;
+
+    expect(attributes[0]).to.have.property('name').that.equals('test');
+    expect(attributes[0]).to.have.property('encoding').to.equal('base64');
+  })
+})

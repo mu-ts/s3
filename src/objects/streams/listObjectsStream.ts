@@ -1,6 +1,5 @@
 import { Readable } from "stream";
 import { listObjects } from "../listObjects";
-import { BucketRegistry } from "../../guts/BucketRegistry";
 import { Objects } from "../model/Objects";
 import { ObjectKey } from "../model/ObjectKey";
 import { getObject } from "../getObject";

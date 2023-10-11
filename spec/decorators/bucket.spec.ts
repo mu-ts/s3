@@ -1,20 +1,17 @@
 import { expect } from 'chai';
-import { suite, test } from '@testdeck/mocha';
+import { describe, it } from 'mocha';
 
 import { bucket } from '../../src/objects/decorators/bucket';
-import { BucketRegistry } from '../../src/guts/BucketRegistry';
 
-@suite
-export class BucketSpec {
-  @test
-  public decorate(): void {
-   
+describe('@bucket', () => {
+  it('to decorate class', () => {
+    
     @bucket('test')
     class User {}
 
-    const bucketName: string = BucketRegistry.getBucketName(User);
+    User['mu-ts']
 
-    expect(bucketName).to.equal('test');
-  }
+    expect(User['mu-ts']).to.have.property('bucket').that.equals('test');
+  })
+})
 
-}
