@@ -1,19 +1,20 @@
+
 import { expect } from 'chai';
-import { suite, test } from '@testdeck/mocha';
+import { describe, it } from 'mocha';
 
 import { ignore } from '../../src/objects/decorators/ignore';
-import { BucketRegistry } from '../../src/guts/BucketRegistry';
-import { AttributeConfiguration } from '../../src/guts/model/AttributeConfiguration';
+import { bucket } from '../../src/objects/decorators/bucket';
 
-@suite
-export class IgnoreSpec {
-  @test
-  public decorate(): void {
-    class IgnoreUser {
-      @ignore()
-      public test: string = '';
+describe('@ignore', () => {
+  it('to decorate a field', () => {
+    
+    @bucket('test')
+    class User {
+      @ignore
+      public ignore: string = 'em'
     }
-    const attributes: AttributeConfiguration = BucketRegistry.getAttributes(IgnoreUser, 'test');
-    expect(attributes).to.have.property('ignored').that.is.true;
-  }
-}
+
+    expect(User['mu-ts']).to.have.property('ignore').to.deep.include('ignore');
+  })
+})
+

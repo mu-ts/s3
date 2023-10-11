@@ -6,7 +6,7 @@ import { bucket } from '../../src/objects/decorators/bucket';
 
 
 describe('@encode', () => {
-  it('to decorate class with basic encode, with bucket', () => {
+  it('to decorate field with basic encode, with bucket', () => {
     @bucket('test-bucket')
     class EncodeUser{
       @encode()
@@ -15,10 +15,10 @@ describe('@encode', () => {
 
     const attributes: {name: string, encoding: string } = EncodeUser['mu-ts'].encode;
 
-    expect(attributes[0]).to.have.property('name').that.equals('test');
+    expect(attributes[0]).to.have.property('field').that.equals('test');
   })
 
-  it('to decorate class with base64 and bucket', () => {
+  it('to decorate field with base64 and bucket', () => {
     @bucket('test-bucket')
     class EncodeUser{
       @encode('base64')
@@ -27,7 +27,7 @@ describe('@encode', () => {
     
     const attributes: {name: string, encoding: string } = EncodeUser['mu-ts'].encode;
 
-    expect(attributes[0]).to.have.property('name').that.equals('test');
+    expect(attributes[0]).to.have.property('field').that.equals('test');
     expect(attributes[0]).to.have.property('encoding').to.equal('base64');
   })
 })

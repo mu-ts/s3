@@ -1,19 +1,19 @@
 import { expect } from 'chai';
-import { suite, test } from '@testdeck/mocha';
+import { describe, it } from 'mocha';
 
 import { tag } from '../../src/objects/decorators/tag';
-import { BucketRegistry } from '../../src/guts/BucketRegistry';
-import { AttributeConfiguration } from '../../src/guts/model/AttributeConfiguration';
+import { bucket } from '../../src/objects/decorators/bucket';
 
-@suite
-export class TagSpec {
-  @test
-  public decorate(): void {
-    class IgnoreUser {
-      @tag()
-      public test: string = '';
+describe('@tag', () => {
+  it('to decorate a field', () => {
+    
+    @bucket('test')
+    class User {
+      @tag
+      public tagged: string = 'em'
     }
-    const attributes: AttributeConfiguration = BucketRegistry.getAttributes(IgnoreUser, 'test');
-    expect(attributes).to.have.property('tag').that.is.true;
-  }
-}
+
+    expect(User['mu-ts']).to.have.property('tags').to.deep.include('tagged');
+  })
+})
+

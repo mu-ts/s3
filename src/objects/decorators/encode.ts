@@ -11,7 +11,7 @@ export function encode(encoding?: BufferEncoding): any {
       const metadata = this.constructor['mu-ts'];
       if (metadata) {
         if (!metadata['encode']) metadata['encode'] = [];
-        metadata['encode'].push({name, encoding })
+        metadata['encode'].push({field: name, encoding })
       }
     })
   };

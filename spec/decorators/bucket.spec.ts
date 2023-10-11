@@ -9,8 +9,6 @@ describe('@bucket', () => {
     @bucket('test')
     class User {}
 
-    User['mu-ts']
-
     expect(User['mu-ts']).to.have.property('bucket').that.equals('test');
   })
 })

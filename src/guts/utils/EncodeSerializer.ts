@@ -1,4 +1,4 @@
-interface FieldEncoding { name:string, encoding?: BufferEncoding }
+interface FieldEncoding { field:string, encoding?: BufferEncoding }
 
 export class EncodeSerializer {
 
@@ -11,7 +11,7 @@ export class EncodeSerializer {
   public serialize(name: string, value: any | undefined): any {
     if (!this.encodeFields || value === undefined) return value;
 
-    const encryptionField: FieldEncoding | undefined = this.encodeFields.find((field: FieldEncoding) => field.name === name);
+    const encryptionField: FieldEncoding | undefined = this.encodeFields.find(({field}: FieldEncoding) => field === name);
 
     if (encryptionField) {
       const { encoding } = encryptionField;

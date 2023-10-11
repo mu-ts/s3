@@ -8,7 +8,7 @@ import { UUIDV5 } from '../../guts/model/UUIDV5';
  * @returns 
  */
 
-export function id(generator: IDGenerator | 'uuid' | UUIDV5): any {
+export function id(generator?: IDGenerator | 'uuid' | UUIDV5): any {
   return function idGenerator(originalMethod: any, context: ClassFieldDecoratorContext): void {
     context.addInitializer(function (): void {
       const { name } = context;

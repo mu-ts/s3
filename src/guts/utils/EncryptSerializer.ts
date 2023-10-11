@@ -1,6 +1,6 @@
 import { Cipher, createCipheriv, randomBytes, CipherCCMTypes, CipherOCBTypes, CipherGCMTypes } from 'crypto';
 
-interface FieldEncryption { name:string, secret: string, algorithm?: CipherCCMTypes | CipherOCBTypes | CipherGCMTypes | string }
+interface FieldEncryption { field:string, secret: string, algorithm?: CipherCCMTypes | CipherOCBTypes | CipherGCMTypes | string }
 
 export class EncryptSerializer {
 
@@ -13,7 +13,7 @@ export class EncryptSerializer {
   public serialize(name: string, value: any | undefined): any {
     if (!this.encryptedFields || value === undefined) return value;
 
-    const encryptionField: FieldEncryption | undefined = this.encryptedFields.find((field: FieldEncryption) => field.name === name);
+    const encryptionField: FieldEncryption | undefined = this.encryptedFields.find(({field}: FieldEncryption) => field === name);
 
     if (encryptionField) {
       const secret: Buffer = Buffer.from(encryptionField.secret);

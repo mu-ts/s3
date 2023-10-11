@@ -14,7 +14,7 @@ export function encrypt(secret: string, algorithm: CipherCCMTypes | CipherOCBTyp
       const metadata = this.constructor['mu-ts'];
       if (metadata) {
         if (!metadata['encrypt']) metadata['encrypt'] = [];
-        metadata['encrypt'].push({ name, secret, algorithm })
+        metadata['encrypt'].push({ field: name, secret, algorithm })
       }
     })
   };

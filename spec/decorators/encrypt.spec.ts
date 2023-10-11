@@ -1,33 +1,29 @@
 import { expect } from 'chai';
-import { suite, test } from '@testdeck/mocha';
+import { describe, it } from 'mocha';
 
 import { encrypt } from '../../src/objects/decorators/encrypt';
 import { bucket } from '../../src/objects/decorators/bucket';
-import { BucketRegistry } from '../../src/guts/BucketRegistry';
-import { AttributeConfiguration } from '../../src/guts/model/AttributeConfiguration';
 
-@suite
-export class EncryptSpec {
-  @test
-  public decorate(): void {
-    class EcnryptUser {
-      @encrypt('little')
+describe('@encrypt', () => {
+  it('to decorate field', () => {
+    
+    @bucket('test')
+    class User {
+      @encrypt('SuperSecretSecret')
       public test: string = '';
     }
-    const attributes: AttributeConfiguration = BucketRegistry.getAttributes(EcnryptUser, 'test');
-    expect(attributes).to.have.property('encrypted').that.is.true;
-    expect(attributes).to.have.property('encryptSecret').to.equal('little');
-  }
 
-  @test
-  public decorateWithBucket(): void {
-    @bucket('test-bucket')
-    class EcnryptUser {
-      @encrypt('little')
+    expect(User['mu-ts']).to.have.property('encrypt').to.deep.include({ field: 'test', secret: 'SuperSecretSecret', algorithm: 'aes-256-cbc'});
+  })
+
+  it('to decorate field with an algorithm', () => {
+    
+    @bucket('test')
+    class User {
+      @encrypt('SuperSecretSecret', "aes-256-ccm")
       public test: string = '';
     }
-    const attributes: AttributeConfiguration = BucketRegistry.getAttributes(EcnryptUser, 'test');
-    expect(attributes).to.have.property('encrypted').that.is.true;
-    expect(attributes).to.have.property('encryptSecret').to.equal('little');
-  }
-}
+
+    expect(User['mu-ts']).to.have.property('encrypt').to.deep.include({ field: 'test', secret: 'SuperSecretSecret', algorithm: 'aes-256-ccm'});
+  })
+})
