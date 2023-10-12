@@ -52,11 +52,9 @@ export async function getObject<T>(id: string, bucketOrClazz: string | any, vers
     return { ...instance, ...object, ...metadata };
 
   } catch(error: unknown) {
-
     if (error instanceof NotFound || error instanceof NoSuchBucket || error instanceof NoSuchKey) {
       return undefined;
     }
-    const { name, message, $metadata } = error as S3ServiceException;
-    throw new Error(`${name}: ${message} [${$metadata.requestId}]`);
+    throw error;
   }
 }

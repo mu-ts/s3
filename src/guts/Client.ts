@@ -8,18 +8,20 @@ export class Client {
 
   private readonly logger: Logger;
 
-  private readonly client: S3Client;
+  private readonly client: Promise<S3Client>;
 
   private constructor() {
     this.logger = LoggerService.named(this.constructor.name);
-    this.client = new S3Client({ region: process.env.REGION || process.env.AWS_REGION || process.env.AWS_LAMBDA_REGION });
+    this.client = new Promise((resolve) => resolve(new S3Client({ region: process.env.REGION || process.env.AWS_REGION || process.env.AWS_LAMBDA_REGION })));
     this.logger.debug('init()');
   }
 
   public async send<Input extends ServiceInputTypes, Output extends ServiceOutputTypes>(command: Input): Promise<Output> {
     this.logger.trace('send()', 'input', { command });
-    const response: Output = await this.client.send<Input, Output>(command as any);
-    this.logger.trace('send()', 'response', { response });
+    const client: S3Client = await this.client;
+    const response: Output = await client.send<Input, Output>(command as any);
+    // It is unsafe to log the repsonse as it will have circular references.
+    this.logger.trace('send()', 'response recieve');
     return response;
   }
 
