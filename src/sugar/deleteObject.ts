@@ -1,7 +1,7 @@
-import { DeleteObjectCommandInput, DeleteObjectCommand, DeleteObjectCommandOutput  } from "@aws-sdk/client-s3";
+import { DeleteObjectCommandInput, DeleteObjectCommand, DeleteObjectCommandOutput  } from '@aws-sdk/client-s3';
 
-import { Client } from "../guts/Client";
-import { BucketService } from "../guts/BucketService";
+import { Client } from './guts/Client';
+import { BucketService } from './guts/BucketService';
 
 /**
  * Removes an item from the bucket.

@@ -5,21 +5,20 @@ import {
   NoSuchBucket,
   NoSuchKey,
   NotFound,
-  S3ServiceException,
-} from "@aws-sdk/client-s3";
-import { Readable } from "stream";
+} from '@aws-sdk/client-s3';
+import { Readable } from 'stream';
 import * as consumers from 'node:stream/consumers';
 
-import { Client } from "../guts/Client";
-import { BucketService } from "../guts/BucketService";
-import { MetadataSerializer } from "../guts/MetadataSerializer";
+import { Client } from './guts/Client'
+import { BucketService } from './guts/BucketService'
+import { fromMetadata, fromString } from '@mu-ts/serialization'
 
 /**
  * Retrieves an item from the bucket and serializes it into an object.
  * @param id of the item to delete.
  * @param bucketNameOrClass annotated object or name of the bucket.
  * @param version to delete (if provided).
- * @returns the version id (if returned) of the item deleted.
+ * @returns the serialized instance from the body and metadata
  */
 export async function getObject<T>(id: string, bucketOrClazz: string | any, version?: string): Promise<T | undefined> {
   const bucketName: string = BucketService.getName(bucketOrClazz);
@@ -31,7 +30,7 @@ export async function getObject<T>(id: string, bucketOrClazz: string | any, vers
   }
 
   try {
-    const result: GetObjectCommandOutput = await Client.instance().send(new GetObjectCommand(input));
+    const result: GetObjectCommandOutput = await Client.instance().send(new GetObjectCommand(input))
 
     if (!result.Body) return undefined;
 
@@ -39,15 +38,15 @@ export async function getObject<T>(id: string, bucketOrClazz: string | any, vers
      * Go through the metadata returned, if any of the keys match a configured attribute
      * that is set as a tag, then grab it, so it can be put back on the object.
      */
-    const metadataDeserializer: MetadataSerializer = new MetadataSerializer();
-    const metadata: Record<string, any> = metadataDeserializer.deserialize(result.Metadata, bucketOrClazz);
+    const metadata: Record<string, any> = fromMetadata(result.Metadata, bucketOrClazz);
 
     /**
      * Constructing an instance of the underlying class will ensure that the
      * association to the bucket does not get lost.
      */
-    const object: any = await consumers.json(result.Body as Readable)
-    const instance: T = typeof bucketOrClazz === "string"? {} : new bucketOrClazz();
+    const body: string = await consumers.text(result.Body as Readable)
+    const object: any = fromString(body, bucketOrClazz)
+    const instance: T = typeof bucketOrClazz === 'string'? {} : new bucketOrClazz()
 
     return { ...instance, ...object, ...metadata };
 

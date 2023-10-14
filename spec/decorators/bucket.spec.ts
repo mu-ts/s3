@@ -1,7 +1,8 @@
 import { expect } from 'chai';
 import { describe, it } from 'mocha';
 
-import { bucket } from '../../src/objects/decorators/bucket';
+import { bucket } from '../../src/decorators/bucket';
+import { BucketService } from '../../src/sugar/guts/BucketService';
 
 describe('@bucket', () => {
   it('to decorate class', () => {
@@ -9,7 +10,7 @@ describe('@bucket', () => {
     @bucket('test')
     class User {}
 
-    expect(User['mu-ts']).to.have.property('bucket').that.equals('test');
+    expect(User[BucketService.PREFIX]).to.have.property('bucket').that.equals('test');
   })
 })
 

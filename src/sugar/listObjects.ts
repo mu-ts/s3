@@ -1,10 +1,10 @@
-import { ListObjectsV2Command, ListObjectsV2CommandInput, ListObjectsV2CommandOutput, _Object  } from "@aws-sdk/client-s3";
+import { ListObjectsV2Command, ListObjectsV2CommandInput, ListObjectsV2CommandOutput, _Object  } from '@aws-sdk/client-s3';
 
-import { Client } from "../guts/Client";
-import { Objects } from "./model/Objects";
-import { ObjectKey } from "./model/ObjectKey";
-import { Constructor } from "../guts/model/Constructor";
-import { BucketService } from "../guts/BucketService";
+import { Objects } from '../model/Objects';
+import { ObjectKey } from '../model/ObjectKey';
+
+import { Client } from './guts/Client';
+import { BucketService } from './guts/BucketService';
 
 /**
  * Used to iterate over the contents of a bucket, or locate a series of documents that 

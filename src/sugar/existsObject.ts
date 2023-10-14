@@ -5,10 +5,10 @@ import {
   NoSuchBucket,
   NoSuchKey,
   NotFound
-} from "@aws-sdk/client-s3";
+} from '@aws-sdk/client-s3';
 
-import { Client } from "../guts/Client";
-import { BucketService } from "../guts/BucketService";
+import { Client } from './guts/Client';
+import { BucketService } from './guts/BucketService';
 
 /**
  * Lightweight check to see if the object exists, without having to load the whole object.
