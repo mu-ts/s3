@@ -5,11 +5,10 @@ import {
   NoSuchBucket,
   NoSuchKey,
   NotFound
-} from "@aws-sdk/client-s3";
-import { BucketRegistry } from "../guts/BucketRegistry";
-import { Client } from "../guts/Client";
-import { Constructor } from "../guts/model/Constructor";
-import { Logger } from "../utils/Logger";
+} from '@aws-sdk/client-s3';
+
+import { Client } from './guts/Client';
+import { BucketService } from './guts/BucketService';
 
 /**
  * Lightweight check to see if the object exists, without having to load the whole object.
@@ -19,20 +18,17 @@ import { Logger } from "../utils/Logger";
  * @param version to delete (if provided).
  * @returns the version id (if returned) of the item deleted.
  */
-export async function existsObject(id: string, bucket: Constructor, version?: string): Promise<boolean> {
+export async function existsObject(id: string, bucketOrObject: string | any, version?: string): Promise<boolean> {
   const input: HeadObjectCommandInput = {
-    Bucket: BucketRegistry.getBucketName(bucket),
+    Bucket: BucketService.getName(bucketOrObject),
     Key: id,
     VersionId: version,
   }
 
   try {
-    Logger.trace('existsObject()', 'input', { input });
     const output: HeadObjectCommandOutput | undefined = await Client.instance().send(new HeadObjectCommand(input));
-    Logger.trace('existsObject()', 'output', { output });
     return !!(output);
   } catch (error: unknown) {
-    Logger.trace('existsObject()', 'Error', { error });
     /*
      * If the bucket does not exist, or you do not have permission to access it,
      * the HEAD request returns a generic 400 Bad Request, 403 Forbidden or 404 Not Found code.

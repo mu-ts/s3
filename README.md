@@ -9,29 +9,14 @@ In orderto do all the neat behaviors around an objet, we need a class to associa
 ```
 @bucket(process.env.BUCKET_NAME)
 class User {
-  @id('uuid')
+  @id
   public id: string;
 
   public name: string;
-  
-  @encoded('base64')
-  @encrypted('my-secret')
-  public address: string;
-
-  @tag()
-  public group: string;
-
-  @redacted()
-  public hashId: string;
 }
 ```
 
-* @bucket() associates all instances of the class to the named bucket.
-* @id(type) describes the single field that can be used for the ID, and how to generate the ID if none is provided. `uuid` for uuid v4 generation. An instance of UUIDV5('namespace-value') to use uuid v5, with the associated attribute as the seed for the key. Or, define a function that will be given the object, and output a string as the ID.
-* @encrypt(secret) to have this field encrypted before it is persisted. Encoding happens after encryption if both are on the same field.
-* @encoded(type) to have this field encoded before it is persisted. Encoding happens after encryption if both are on the same field.
-* @tag() to remove this attribute from the body of the document and store as metadata instead.
-* @redacted to never persist this value, in tags nor the serialized body.
+See the [@mu-ts/serialization](https://github.com/mu-ts/serialization) library for more control on how the object is serialized.
 
 ## Behaviors
 
@@ -151,17 +136,5 @@ const continuationToken: string = results.getContinuationToken();
 const results: ObjectKey[] = results.getResults();
 
 const nextResults: Objects = await listObjects(User, undefined, pageSize, continuationToken);
-
-```
-
-## Stream
-
-This is not tested yet, but should work?
-
-```
-import { listObjectsStream } from '@mu-ts/s3';
-
-listObjectsStream(User, undefined, false).pipe(system.out);
-
 
 ```
