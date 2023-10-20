@@ -31,35 +31,4 @@ export class BucketService {
     return Object.values(idFieldAndValue).pop() as string;
 
   }
-
-  // public static setKey(object: any): string {
-
-
-  //   /**
-  //    * Gues what field might be the key.
-  //    */
-  //   if (!metadata) return object['key'] || object['id'] || object['_id'] || object['Key'];
-    
-  //   const { field, generator }: { field: string, generator?: IDGenerator | 'uuid' | UUIDV5 } | undefined =  metadata?.id;
-
-  //   /**
-  //    * Otherwise drop into the logic where the ID is generated.
-  //    */
-  //   if (generator === 'uuid') object[field] =  v4();
-  //   else if (typeof generator === 'function') object[field] =  generator(object);
-  //   /**
-  //    * UUID5 gives a deterministic UUID based on the namespace provdied.
-  //    */
-  //   else if (generator instanceof UUIDV5) {
-  //     /**
-  //      * First argument is the seed, second argument is the namespace.
-  //      */
-  //     object[field] = v5(object[field], generator.getNamespace());
-  //   }
-
-  //   /**
-  //    * If no algorithm was set then we should return the field by default.
-  //    */
-  //   return object[field];
-  // }
 }
