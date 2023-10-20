@@ -28,7 +28,16 @@ export async function putObject<T extends object>(object: T, bucket?: string): P
 
   const md5: string = Diacritics.remove(MD5.generate(body))
 
-  const metadata: Record<string, string> = toMetadata(object)
+  const _metadata: Record<string, string | string[]> = toMetadata(object);
+  /**
+   * Array is not supported by S3 metadata, so need to join any Array values together.
+   */
+  const metadata: Record<string, string> = Object.keys(_metadata).reduce((accumulator: Record<string, string>, key: string) => {
+    const value: string | string[] = _metadata[key]
+    if(Array.isArray(value)) accumulator[key] = value.join(',')
+    else accumulator[key] = value
+    return accumulator;
+  }, {})
   metadata['Content-Length'] = `${body.length}`
   metadata['MD5'] = md5
   metadata['mu-ts'] = 'true'

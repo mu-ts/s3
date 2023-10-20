@@ -21,7 +21,6 @@ export class BucketService {
      */
     const idFieldName: string | undefined = instance.constructor[this.PREFIX]?.id;
     const idFieldAndValue = JSON.parse(_body, (key: string, value: any) => {
-      console.log('parse()', { key })
       if (key === '') return value;
       else if (idFieldName && key === idFieldName) return value;
       else if (!idFieldName && ['id', '_id', 'ID', 'Id', 'Key', 'key'].includes(key)) return value;
